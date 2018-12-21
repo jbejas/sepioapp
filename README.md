@@ -1,2 +1,2 @@
 # Sepio App
-Sepio App
+Sepio App Development
