@@ -1,2 +1,2 @@
 # sepioapp
-sepio
+Sepio App
