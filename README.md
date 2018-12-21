@@ -1,2 +1,2 @@
-# sepioapp
+# Sepio App
 Sepio App
