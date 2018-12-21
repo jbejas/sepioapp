@@ -1,0 +1,12 @@
+<svg id="menu-btn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 25">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #f3407b;
+      }
+    </style>
+  </defs>
+  <rect id="Rectangle_30" data-name="Rectangle 30" class="cls-1" width="30" height="5" rx="2.5"/>
+  <rect id="Rectangle_30_Copy" data-name="Rectangle 30 Copy" class="cls-1" width="30" height="5" rx="2.5" transform="translate(0 10)"/>
+  <rect id="Rectangle_30_Copy_2" data-name="Rectangle 30 Copy 2" class="cls-1" width="30" height="5" rx="2.5" transform="translate(0 20)"/>
+</svg>
