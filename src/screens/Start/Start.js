@@ -143,7 +143,7 @@ class StartScreen extends Component {
         <View style={styles.container2}>
           <Text style={styles.text1}>Welcome to</Text>
           <Text style={styles.text2}>Sepio Guard</Text>
-          <Text style={styles.text3}>Away From Home Insurance</Text>
+          <Text style={styles.text3}>Away From Home Assurance</Text>
         </View>
         <View style={styles.container3}>
           <CustomButton
