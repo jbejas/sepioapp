@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Navigation } from "react-native-navigation";
 import Image from "react-native-remote-svg";
+import RNPickerSelect from "react-native-picker-select";
 import CustomButton from "../../components/CustomButton/CustomButton";
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
@@ -26,30 +27,68 @@ class PlanScreen extends Component {
     modalVisible: false,
     menuState: false,
     currentScreen: false,
-    selectedPlan: 0
+    selectedPlan: 0,
+    customer: 0
   };
 
   constructor(props) {
     super(props);
     Navigation.events().bindComponent(this);
+    this.inputRefs = {};
+  }
 
-    /*Navigation.mergeOptions(this.props.componentId, {
-      topBar: {
-        visible: true,
-        hideOnScroll: false,
-        background: {
-          color: "#FFFFFF"
-        },
-        noBorder: true,
-        leftButtons: [
-          {
-            id: "Drawer",
-            color: "#F3407B",
-            icon: menu
-          }
-        ]
-      }
-    });*/
+  componentDidMount() {
+    db.transaction(tx => {
+      tx.executeSql("SELECT * FROM login WHERE ID = 1", [], (tx, results) => {
+        console.log("Results", results.rows.item(0));
+        if (results.rows.item(0).uid) {
+          fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
+            method: "GET",
+            credentials: "include"
+          })
+            .then(response => {
+              console.log("Response Customers", response);
+              let c = JSON.parse(response._bodyText);
+              let customers = [];
+
+              for (var i = 0; i < c.length; i++) {
+                var date = new Date(parseInt(c[i]["createdAt"]));
+                var month = date.getMonth() + 1;
+                if (month < 10) {
+                  month = "0" + month;
+                }
+                var day = date.getDay();
+                if (day < 10) {
+                  day = "0" + day;
+                }
+                var year = date.getFullYear();
+                var formattedTime = month + "/" + day + "/" + year;
+
+                if (c[i].vendor == results.rows.item(0).employer) {
+                  customers.push({
+                    value: c[i]["id"],
+                    label: c[i]["firstName"] + " " + c[i]["lastName"]
+                  });
+                }
+              }
+
+              if (customers.length == 0) {
+                console.log("No Customers");
+              } else {
+                this.setState(prevState => {
+                  return {
+                    ...prevState,
+                    customers: customers
+                  };
+                });
+              }
+            })
+            .catch(error => {
+              console.log('Error retrieveing customers.')
+            });
+        }
+      });
+    });
   }
 
   navigationButtonPressed({ buttonId }) {
@@ -78,6 +117,15 @@ class PlanScreen extends Component {
   setModalVisible(visible) {
     this.setState({ modalVisible: visible });
   }
+
+  setCustomer = value => {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        customer: value
+      };
+    });
+  };
 
   goToScreen = screenName => {
     Navigation.push(this.props.componentId, {
@@ -169,13 +217,28 @@ class PlanScreen extends Component {
               <Text style={styles.text3}>out the form themselves. Please</Text>
               <Text style={styles.text3}>choose one of the options below.</Text>
               <View style={[styles.row, styles.selectBox]}>
-                <TextInput
-                  style={styles.select}
-                  onChangeText={text => this.setState({ text })}
-                  placeholder="Select a Customer"
-                  placeholderTextColor="#0F195B"
+              <RNPickerSelect
+                  placeholder={{
+                    label: "Select Customer...",
+                    value: null,
+                    color: "#01396F"
+                  }}
+                  items={this.state.customers}
+                  hideIcon={true}
+                  onValueChange={value => {
+                    this.setCustomer(value);
+                  }}
+                  onUpArrow={() => {
+                    this.inputRefs.name.focus();
+                  }}
+                  onDownArrow={() => {
+                    this.inputRefs.picker2.togglePicker();
+                  }}
+                  style={{ ...pickerSelectStyles }}
+                  ref={el => {
+                    this.inputRefs.picker = el;
+                  }}
                 />
-                <Image style={styles.arrow} source={arrow} />
               </View>
               <View style={[styles.row, styles.selectBox]}>
                 <TextInput
@@ -511,6 +574,32 @@ const styles = StyleSheet.create({
   paddingBottom: {
     paddingTop: 30,
     paddingBottom: 30
+  }
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 20,
+    paddingTop: 12,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    borderWidth: 0,
+    borderColor: "gray",
+    borderRadius: 4,
+    backgroundColor: "#efefef",
+    color: "#01396F",
+    textAlign: "center"
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingTop: 10,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    borderWidth: 0,
+    borderColor: "gray",
+    borderRadius: 4,
+    backgroundColor: "#efefef",
+    color: "#01396F"
   }
 });
 
