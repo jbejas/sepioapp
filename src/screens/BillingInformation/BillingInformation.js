@@ -4,11 +4,16 @@ import {
   Text,
   View,
   TouchableWithoutFeedback,
-  TouchableOpacity
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  Modal
 } from "react-native";
 import { Navigation } from "react-native-navigation";
 import CustomButton from "../../components/CustomButton/CustomButton";
 import Image from "react-native-remote-svg";
+import { openDatabase } from "react-native-sqlite-storage";
+var db = openDatabase({ name: "sepio.db" });
 
 // IMAGES
 import cc from "../../assets/images/cc.svg";
@@ -17,7 +22,9 @@ import menu from "../../assets/images/menu.png";
 
 class BillingInformationScreen extends Component {
   state = {
-    menuState: false
+    menuState: false,
+    modalVisible: false,
+    selectedPayment: 0
   };
 
   constructor(props) {
@@ -60,6 +67,44 @@ class BillingInformationScreen extends Component {
     Navigation.pop(this.props.componentId);
   };
 
+  addCC = p => {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        selectedPayment: p
+      };
+    });
+  };
+
+  addACH = p => {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        selectedPayment: p
+      };
+    });
+  };
+
+  processBilling() {
+    if (this.state.selectedPayment != 0) {
+      this.goToScreen("CardInformationScreen");
+    } else {
+      Alert.alert(
+        "Choose Plan",
+        "Please select a Plan.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              console.log("OK Pressed");
+            }
+          }
+        ],
+        { cancelable: false }
+      );
+    }
+  }
+
   openSideMenu = () => {
     if (this.state.menuState == false) {
       this.setState({ menuState: true });
@@ -85,6 +130,15 @@ class BillingInformationScreen extends Component {
   render() {
     return (
       <View style={styles.container}>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={this.state.activityDisplay}
+        >
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <ActivityIndicator size="large" color="#F3407B" />
+          </View>
+        </Modal>
         <View style={styles.topHeader}>
           <TouchableOpacity
             style={styles.button}
@@ -98,16 +152,36 @@ class BillingInformationScreen extends Component {
         </View>
         <View style={styles.planSelectors}>
           <View style={styles.planContainer}>
-            <View style={styles.buttonBg}>
-              <TouchableWithoutFeedback style={styles.button}>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                this.addCC(1);
+              }}
+            >
+              <View
+                style={
+                  this.state.selectedPayment == 1
+                    ? styles.buttonBgSelected
+                    : styles.buttonBg
+                }
+              >
                 <Image source={cc} />
-              </TouchableWithoutFeedback>
-            </View>
-            <View style={styles.buttonBg}>
-              <TouchableWithoutFeedback style={styles.button}>
+              </View>
+            </TouchableWithoutFeedback>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                this.addACH(2);
+              }}
+            >
+              <View
+                style={
+                  this.state.selectedPayment == 2
+                    ? styles.buttonBgSelected
+                    : styles.buttonBg
+                }
+              >
                 <Image source={bank} />
-              </TouchableWithoutFeedback>
-            </View>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
           <View style={styles.planDescription}>
             <View style={styles.containerText}>
@@ -136,7 +210,7 @@ class BillingInformationScreen extends Component {
             fontSize={16}
             borderRadius={5}
             marginTop={15}
-            onPressHandler={() => this.goToScreen("CardInformationScreen")}
+            onPressHandler={() => this.processBilling()}
           />
         </View>
         <View style={styles.back}>
@@ -229,6 +303,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     borderRadius: 5
+  },
+  buttonBgSelected: {
+    width: 150,
+    height: 150,
+    backgroundColor: "#F3F3F7",
+    justifyContent: "space-around",
+    alignItems: "center",
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: "#01396F"
   },
   planDescription: {
     justifyContent: "space-around",

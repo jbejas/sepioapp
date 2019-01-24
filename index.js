@@ -27,6 +27,9 @@ import BillingInformationScreen from "./src/screens/BillingInformation/BillingIn
 import CardInformationScreen from "./src/screens/CardInformation/CardInformation";
 import PaymentOptionsScreen from "./src/screens/PaymentOptions/PaymentOptions";
 import MenuScreen from "./src/screens/Menu/Menu";
+import ForgotPasswordScreen from "./src/screens/ForgotPassword/ForgotPassword";
+import SettingsScreen from "./src/screens/Settings/Settings";
+import CustomersScreen from "./src/screens/Customers/Customers";
 
 Navigation.registerComponent("StartScreen", () => StartScreen);
 Navigation.registerComponent("LoginScreen", () => LoginScreen);
@@ -59,6 +62,15 @@ Navigation.registerComponent(
 );
 
 Navigation.registerComponent("MenuScreen", () => MenuScreen);
+
+Navigation.registerComponent(
+  "ForgotPasswordScreen",
+  () => ForgotPasswordScreen
+);
+
+Navigation.registerComponent("SettingsScreen", () => SettingsScreen);
+
+Navigation.registerComponent("CustomersScreen", () => CustomersScreen);
 
 Navigation.events().registerAppLaunchedListener(() => {
   Navigation.setDefaultOptions({
@@ -104,6 +116,7 @@ Navigation.events().registerAppLaunchedListener(() => {
                 component: {
                   id: "AppStack",
                   name: "StartScreen"
+                  //name: "PaymentOptionsScreen"
                 }
               }
             ]

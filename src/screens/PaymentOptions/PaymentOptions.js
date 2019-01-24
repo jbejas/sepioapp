@@ -9,21 +9,44 @@ import {
 } from "react-native";
 import { Navigation } from "react-native-navigation";
 import CustomButton from "../../components/CustomButton/CustomButton";
+import RNPickerSelect from "react-native-picker-select";
 import Image from "react-native-remote-svg";
 import arrow from "../../assets/images/arrow-down.svg";
 import party from "../../assets/images/party.svg";
 import menu from "../../assets/images/menu.png";
+import { openDatabase } from "react-native-sqlite-storage";
+var db = openDatabase({ name: "sepio.db" });
 
 class PaymentOptionsScreen extends Component {
   state = {
     modalVisible: false,
     setContent: 1,
-    menuState: false
+    menuState: false,
+    payment: 0,
+    items: [
+      {
+        value: "120",
+        label: "1 Month - $120"
+      },
+      {
+        value: "150",
+        label: "3 Months - $150"
+      },
+      {
+        value: "200",
+        label: "1 Month - $200"
+      },
+      {
+        value: "220",
+        label: "1 Month - $220"
+      }
+    ]
   };
 
   constructor(props) {
     super(props);
     Navigation.events().bindComponent(this);
+    this.inputRefs = {};
   }
 
   setModalVisible(visible, content) {
@@ -95,6 +118,117 @@ class PaymentOptionsScreen extends Component {
       });
     }
   }
+
+  setPaymentOption = value => {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        payment: value
+      };
+    });
+  };
+
+  completePurchase = () => {
+    db.transaction(tx => {
+      tx.executeSql("SELECT * FROM plan WHERE ID = 1", [], (tx, results) => {
+        console.log("UPDATING STATUS", results.rows.item(0));
+        let cc_info = JSON.parse(results.rows.item(0).cc_info);
+        let contact_address = JSON.parse(results.rows.item(0).contact_address);
+        let contact_information = JSON.parse(
+          results.rows.item(0).contact_information
+        );
+
+        fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
+          method: "POST",
+          credentials: "include",
+          body: JSON.stringify({
+            firstName: contact_information.first_name,
+            lastName: contact_information.last_name,
+            phone: contact_information.phone,
+            emailAddress: contact_information.email
+          })
+        })
+          .then(response => {
+            console.log("Response Create Customer", response);
+            if (response.status == 202) {
+              this.setModalVisible(true, 1);
+            } else {
+              console.log("Error Creating Customer");
+            }
+          })
+          .catch(error => {
+            console.log("Error Creating New Customer", error._bodyText);
+          });
+      });
+    });
+
+    /*fetch("https://sepioguard-test-api.herokuapp.com/v1/auth/login", {
+      method: "POST",
+      credentials: "include",
+      body: JSON.stringify({
+        emailAddress: this.state.controls.email.value,
+        password: this.state.controls.password.value
+      })
+    })
+      .then(response => {
+        console.log("Response Login", response);
+        if (response.status == 200) {
+          this.storeLogin(response);
+        } else {
+          this.setState(prevState => {
+            return {
+              ...prevState,
+              activityDisplay: false
+            };
+          });
+          setTimeout(() => {
+            Alert.alert(
+              "Login Error",
+              "The Email or Password entered are incorrect.",
+              [
+                {
+                  text: "OK",
+                  onPress: () => {
+                    console.log("OK Pressed");
+                    this.updateInputState("email", "");
+                    this.updateInputState("password", "");
+                    this.emailInput.focus();
+                  }
+                }
+              ],
+              { cancelable: false }
+            );
+          }, 200);
+        }
+      })
+      .catch(error => {
+        console.log("Error Login", error._bodyText);
+        this.setState(prevState => {
+          return {
+            ...prevState,
+            activityDisplay: false
+          };
+        });
+        setTimeout(() => {
+          Alert.alert(
+            "Login Error",
+            "The Email or Password entered are incorrect.",
+            [
+              {
+                text: "OK",
+                onPress: () => {
+                  console.log("OK Pressed");
+                  this.updateInputState("email", "");
+                  this.updateInputState("password", "");
+                  this.emailInput.focus();
+                }
+              }
+            ],
+            { cancelable: false }
+          );
+        }, 200);
+      });*/
+  };
 
   render() {
     const purchase = (
@@ -264,17 +398,32 @@ class PaymentOptionsScreen extends Component {
           <Text style={styles.text1}>Payment Options</Text>
         </View>
         <View style={[styles.row, styles.selectBox]}>
-          <TextInput
-            style={styles.select}
-            onChangeText={text => this.setState({ text })}
-            placeholder="Select a payment option"
-            placeholderTextColor="#0F195B"
+          <RNPickerSelect
+            placeholder={{
+              label: "Select Payment Option...",
+              value: null,
+              color: "#01396F"
+            }}
+            items={this.state.items}
+            hideIcon={true}
+            onValueChange={value => {
+              this.setPaymentOption(value);
+            }}
+            onUpArrow={() => {
+              this.inputRefs.name.focus();
+            }}
+            onDownArrow={() => {
+              this.inputRefs.picker2.togglePicker();
+            }}
+            style={{ ...pickerSelectStyles }}
+            ref={el => {
+              this.inputRefs.picker = el;
+            }}
           />
-          <Image style={styles.arrow} source={arrow} />
         </View>
         <View style={styles.row1}>
           <Text style={styles.text2}>Total Due Today:</Text>
-          <Text style={styles.text2}>$449</Text>
+          <Text style={styles.text2}>${this.state.payment}</Text>
         </View>
         <View style={styles.nextBt}>
           <CustomButton
@@ -294,7 +443,7 @@ class PaymentOptionsScreen extends Component {
             fontSize={16}
             borderRadius={5}
             marginTop={15}
-            onPressHandler={() => this.setModalVisible(true, 1)}
+            onPressHandler={() => this.completePurchase()}
           />
         </View>
         <View style={styles.back}>
@@ -483,6 +632,32 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginTop: 20,
     marginBottom: 0
+  }
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 20,
+    paddingTop: 12,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    borderWidth: 0,
+    borderColor: "gray",
+    borderRadius: 4,
+    backgroundColor: "#efefef",
+    color: "#01396F",
+    textAlign: "center"
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingTop: 10,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    borderWidth: 0,
+    borderColor: "gray",
+    borderRadius: 4,
+    backgroundColor: "#efefef",
+    color: "#01396F"
   }
 });
 

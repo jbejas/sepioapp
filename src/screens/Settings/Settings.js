@@ -12,7 +12,7 @@ import {
 import { Navigation } from "react-native-navigation";
 import Image from "react-native-remote-svg";
 import CustomButton from "../../components/CustomButton/CustomButton";
-import DatePicker from "react-native-datepicker";
+import RNPickerSelect from "react-native-picker-select";
 import validate from "../../utility/validation";
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
@@ -20,12 +20,10 @@ var db = openDatabase({ name: "sepio.db" });
 // IMAGES
 import menu from "../../assets/images/menu.png";
 
-class ContactInformationScreen extends Component {
+class SettingsScreen extends Component {
   state = {
     menuState: false,
     activityDisplay: false,
-    currentDate: "",
-    selectedDate: null,
     controls: {
       email: {
         value: "",
@@ -55,58 +53,96 @@ class ContactInformationScreen extends Component {
           minLength: 10
         }
       }
-    }
+    },
+    company: 0,
+    items: [
+      {
+        value: "0",
+        label: "--"
+      }
+    ]
   };
 
   constructor(props) {
     super(props);
     Navigation.events().bindComponent(this);
-    let currentDate = new Date();
-    currentDate.setFullYear(currentDate.getFullYear() - 18);
-    let day = currentDate.getDate();
-    let month = currentDate.getMonth() + 1;
-    if (day < 10) {
-      day = "0" + day;
-    }
-    if (month < 10) {
-      month = "0" + month;
-    }
-    currentDate =
-      currentDate.getMonth() +
-      "-" +
-      currentDate.getDate() +
-      "-" +
-      currentDate.getFullYear();
-    console.log("Current Date -> " + currentDate);
+    this.inputRefs = {};
+  }
+
+  componentDidMount() {
     this.setState(prevState => {
       return {
         ...prevState,
-        currentDate: currentDate
+        activityDisplay: true
       };
     });
-  }
 
-  navigationButtonPressed({ buttonId }) {
-    console.log("Button ID -> " + buttonId);
-    if (buttonId == "Drawer" && this.state.menuState == false) {
-      this.setState({ menuState: true });
-      Navigation.mergeOptions(this.props.componentId, {
-        sideMenu: {
-          left: {
-            visible: true
-          }
+    fetch("https://sepioguard-test-api.herokuapp.com/v1/company", {
+      method: "GET",
+      credentials: "include"
+    })
+      .then(response => {
+        console.log("Response Companies", response);
+        let companies = JSON.parse(response._bodyText);
+        let c = {};
+        for (var k in companies) {
+          companies[k]["value"] = companies[k]["id"];
+          companies[k]["label"] = companies[k]["name"];
         }
+
+        this.setState(prevState => {
+          return {
+            ...prevState,
+            items: companies
+          };
+        });
+
+        db.transaction(tx => {
+          tx.executeSql(
+            "SELECT * FROM login WHERE ID = 1",
+            [],
+            (tx, results) => {
+              console.log("RETRIEVING USER DATA", results.rows.item(0));
+              this.updateInputState("email", results.rows.item(0).email);
+              this.updateInputState(
+                "first_name",
+                results.rows.item(0).first_name
+              );
+              this.updateInputState(
+                "last_name",
+                results.rows.item(0).last_name
+              );
+              this.updateInputState("phone", results.rows.item(0).phone);
+              this.setCompanyValue(results.rows.item(0).employer);
+              setTimeout(() => {
+                this.setState(prevState => {
+                  return {
+                    ...prevState,
+                    activityDisplay: false
+                  };
+                });
+              }, 500);
+            }
+          );
+        });
+      })
+      .catch(error => {
+        setTimeout(() => {
+          Alert.alert(
+            "Error",
+            "The App failed to load the Companies List.",
+            [
+              {
+                text: "OK",
+                onPress: () => {
+                  console.log("OK Pressed");
+                }
+              }
+            ],
+            { cancelable: false }
+          );
+        }, 200);
       });
-    } else if (buttonId == "Drawer" && this.state.menuState == true) {
-      this.setState({ menuState: false });
-      Navigation.mergeOptions(this.props.componentId, {
-        sideMenu: {
-          left: {
-            visible: false
-          }
-        }
-      });
-    }
   }
 
   goToScreen = screenName => {
@@ -116,6 +152,15 @@ class ContactInformationScreen extends Component {
       }
     });
   };
+
+  setCompanyValue(c) {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        company: c
+      };
+    });
+  }
 
   goBack = () => {
     Navigation.pop(this.props.componentId);
@@ -143,11 +188,12 @@ class ContactInformationScreen extends Component {
     }
   };
 
-  saveContactInformation = () => {
+  saveProfile = () => {
     console.log("Email -> " + this.state.controls.email.value);
     console.log("First Name -> " + this.state.controls.first_name.value);
     console.log("Last Name -> " + this.state.controls.last_name.value);
     console.log("Phone -> " + this.state.controls.phone.value);
+    console.log("Company -> " + this.state.company);
 
     this.setState(prevState => {
       return {
@@ -206,9 +252,11 @@ class ContactInformationScreen extends Component {
       );
     }
 
-    if (!this.state.selectedDate) {
-      errors.push("- Invalid Date of Birth.");
+    if (!this.state.company) {
+      errors.push("- Please select your company.");
     }
+
+    console.log("Errors -> " + errors.length);
 
     if (errors.length > 0) {
       this.setState(prevState => {
@@ -233,43 +281,90 @@ class ContactInformationScreen extends Component {
         );
       }, 200);
     } else {
-      let contact_information = {
-        first_name: this.state.controls.first_name.value,
-        last_name: this.state.controls.last_name.value,
-        phone: this.state.controls.phone.value,
-        email: this.state.controls.email.value,
-        dob: this.state.selectedDate
-      };
-      contact_information = JSON.stringify(contact_information);
-      db.transaction(tx => {
-        tx.executeSql(
-          "UPDATE plan SET contact_information = '" +
-            contact_information +
-            "' WHERE ID = 1",
-          [],
-          (tx, results) => {
-            console.log("UPDATING CONTACT INFORMATION", results);
-            if (results.rowsAffected == 1) {
-              this.setState(prevState => {
-                return {
-                  ...prevState,
-                  activityDisplay: false
-                };
-              });
-              this.goToScreen("ContactAddressScreen");
-            }
-          }
-        );
-      });
+      console.log("Processing Profile Data");
+
+      fetch(
+        "https://sepioguard-test-api.herokuapp.com/v1/auth/update-profile",
+        {
+          method: "POST",
+          credentials: "include",
+          body: JSON.stringify({
+            emailAddress: this.state.controls.email.value,
+            firstName: this.state.controls.first_name.value,
+            lastName: this.state.controls.last_name.value,
+            phone: this.state.controls.phone.value
+          })
+        }
+      )
+        .then(response => {
+          console.log("Profile Update Result", response);
+
+          db.transaction(tx => {
+            tx.executeSql(
+              "UPDATE login SET first_name = '" +
+                this.state.controls.first_name.value +
+                "', last_name = '" +
+                this.state.controls.last_name.value +
+                "', phone = '" +
+                this.state.controls.phone.value +
+                "', employer = '" +
+                this.state.company +
+                "' WHERE ID = 1",
+              [],
+              (tx, results) => {
+                console.log("UPDATING PROFILE INFORMATION", results);
+                if (results.rowsAffected == 1) {
+                  this.setState(prevState => {
+                    return {
+                      ...prevState,
+                      activityDisplay: false
+                    };
+                  });
+                  setTimeout(() => {
+                    Alert.alert(
+                      "Save Profile",
+                      "Profile Saved!",
+                      [
+                        {
+                          text: "OK",
+                          onPress: () => {
+                            console.log("OK Pressed");
+                          }
+                        }
+                      ],
+                      { cancelable: false }
+                    );
+                  }, 500);
+                }
+              }
+            );
+          });
+        })
+        .catch(error => {
+          setTimeout(() => {
+            Alert.alert(
+              "Error",
+              "The App failed to load the Companies List.",
+              [
+                {
+                  text: "OK",
+                  onPress: () => {
+                    console.log("OK Pressed");
+                  }
+                }
+              ],
+              { cancelable: false }
+            );
+          }, 200);
+        });
     }
   };
 
-  setDate(d) {
-    console.log("Date", d);
+  setCompanyValue(c) {
     this.setState(prevState => {
       return {
         ...prevState,
-        selectedDate: d
+        company: c
       };
     });
   }
@@ -309,17 +404,19 @@ class ContactInformationScreen extends Component {
           </TouchableOpacity>
         </View>
         <View style={styles.header}>
-          <Text style={styles.text1}>Contact Information</Text>
+          <Text style={styles.text1}>Settings</Text>
         </View>
         <View style={styles.row}>
           <TextInput
             style={styles.emailInput}
             onChangeText={email => this.updateInputState("email", email)}
+            value={this.state.controls.email.value}
             placeholder="Email Address"
             placeholderTextColor="#0F195B"
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            editable={false}
           />
         </View>
         <View style={styles.row}>
@@ -329,6 +426,7 @@ class ContactInformationScreen extends Component {
               onChangeText={first_name =>
                 this.updateInputState("first_name", first_name)
               }
+              value={this.state.controls.first_name.value}
               placeholder="First Name"
               placeholderTextColor="#0F195B"
               autoCorrect={false}
@@ -340,6 +438,7 @@ class ContactInformationScreen extends Component {
               onChangeText={last_name =>
                 this.updateInputState("last_name", last_name)
               }
+              value={this.state.controls.last_name.value}
               placeholder="Last Name"
               placeholderTextColor="#0F195B"
               autoCorrect={false}
@@ -350,82 +449,41 @@ class ContactInformationScreen extends Component {
           <TextInput
             style={styles.emailInput}
             onChangeText={phone => this.updateInputState("phone", phone)}
+            value={this.state.controls.phone.value}
             placeholder="Phone Number"
             placeholderTextColor="#0F195B"
             keyboardType="number-pad"
             autoCorrect={false}
           />
         </View>
-        <View style={styles.dob}>
-          <Text style={styles.dobText}>Date of Birth</Text>
-        </View>
-        {/*
-        <View style={styles.row}>
-          <View style={styles.containerColStart}>
-            <TextInput
-              style={styles.firstnameInput}
-              onChangeText={text => this.setState({ text })}
-              placeholder="Month"
-              placeholderTextColor="#0F195B"
-            />
-          </View>
-          <View style={styles.containerCol}>
-            <TextInput
-              style={styles.firstnameInput}
-              onChangeText={text => this.setState({ text })}
-              placeholder="Day"
-              placeholderTextColor="#0F195B"
-            />
-          </View>
-          <View style={styles.containerColEnd}>
-            <TextInput
-              style={styles.lastnameInput}
-              onChangeText={text => this.setState({ text })}
-              placeholder="Year"
-              placeholderTextColor="#0F195B"
-            />
-          </View>
-        </View>
-        */}
-        <View style={styles.row}>
-          <DatePicker
-            style={{ width: "100%" }}
-            date={this.state.selectedDate}
-            mode="date"
-            placeholder="SELECT DATE OF BIRTH"
-            format="MM-DD-YYYY"
-            minDate="1900-01-01"
-            maxDate={this.state.currentDate}
-            confirmBtnText="Confirm"
-            cancelBtnText="Cancel"
-            showIcon={false}
-            customStyles={{
-              dateTouch: {
-                width: "100%"
-              },
-              dateText: {
-                color: "#01396F",
-                fontSize: 15
-              },
-              dateInput: {
-                flex: 1,
-                height: 40,
-                borderWidth: 0,
-                borderColor: "#aaa",
-                borderRadius: 5,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#efefef"
-              }
+        {/*<View style={styles.row}>
+          <RNPickerSelect
+            placeholder={{
+              label: "Select your company...",
+              value: null,
+              color: "#01396F"
             }}
-            onDateChange={new_date => {
-              this.setDate(new_date);
+            items={this.state.items}
+            hideIcon={true}
+            onValueChange={value => {
+              this.setCompanyValue(value);
+            }}
+            onUpArrow={() => {
+              this.inputRefs.name.focus();
+            }}
+            onDownArrow={() => {
+              this.inputRefs.picker2.togglePicker();
+            }}
+            style={{ ...pickerSelectStyles }}
+            value={this.state.company}
+            ref={el => {
+              this.inputRefs.picker = el;
             }}
           />
-        </View>
+          </View>*/}
         <View style={styles.nextBt}>
           <CustomButton
-            title="NEXT"
+            title="SAVE"
             width="95%"
             bgColor="#F3407B"
             paddingTop={14}
@@ -441,13 +499,12 @@ class ContactInformationScreen extends Component {
             fontSize={16}
             borderRadius={5}
             marginTop={15}
-            onPressHandler={() => this.saveContactInformation()}
+            onPressHandler={() => this.saveProfile()}
           />
         </View>
         <View style={styles.back}>
-          <Text style={styles.steps}>1 of 4</Text>
           <CustomButton
-            title="BACK"
+            title=""
             width="90%"
             bgColor="#FFFFFF"
             paddingTop={14}
@@ -455,14 +512,14 @@ class ContactInformationScreen extends Component {
             paddingBottom={14}
             paddingLeft={10}
             textAlign="center"
-            color="#01396F"
+            color="#FFFFFF"
             fontWeight="bold"
             borderWidth={1}
-            borderColor="#01396F"
+            borderColor="#FFFFFF"
             fontFamily="Avenir"
             fontSize={16}
             borderRadius={5}
-            onPressHandler={() => this.goBack()}
+            onPressHandler={() => console.log("Dummy")}
           />
         </View>
         <View style={styles.powered}>
@@ -623,4 +680,31 @@ const styles = StyleSheet.create({
   }
 });
 
-export default ContactInformationScreen;
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingTop: 10,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    borderWidth: 0,
+    borderColor: "gray",
+    borderRadius: 4,
+    backgroundColor: "#efefef",
+    color: "#01396F",
+    marginTop: 5
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingTop: 10,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    borderWidth: 0,
+    borderColor: "gray",
+    borderRadius: 4,
+    backgroundColor: "#efefef",
+    color: "#01396F",
+    marginTop: 5
+  }
+});
+
+export default SettingsScreen;

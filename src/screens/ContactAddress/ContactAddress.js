@@ -4,23 +4,391 @@ import {
   Text,
   View,
   TextInput,
-  TouchableOpacity
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  Modal
 } from "react-native";
 import { Navigation } from "react-native-navigation";
+import RNPickerSelect from "react-native-picker-select";
+import validate from "../../utility/validation";
 import Image from "react-native-remote-svg";
 import CustomButton from "../../components/CustomButton/CustomButton";
+import { openDatabase } from "react-native-sqlite-storage";
+var db = openDatabase({ name: "sepio.db" });
 
 // IMAGES
 import menu from "../../assets/images/menu.png";
 
 class ContactAddressScreen extends Component {
   state = {
-    menuState: false
+    menuState: false,
+    address2: "",
+    activityDisplay: false,
+    selected_state: null,
+    controls: {
+      address: {
+        value: "",
+        valid: false,
+        validationRules: {
+          minLength: 2
+        }
+      },
+      city: {
+        value: "",
+        valid: false,
+        validationRules: {
+          minLength: 2
+        }
+      },
+      zip: {
+        value: "",
+        valid: false,
+        validationRules: {
+          minLength: 5
+        }
+      }
+    },
+    items: [
+      {
+        label: "AL",
+        value: "AL"
+      },
+      {
+        label: "AK",
+        value: "AK"
+      },
+      {
+        label: "AZ",
+        value: "AZ"
+      },
+      {
+        label: "AR",
+        value: "AR"
+      },
+      {
+        label: "CA",
+        value: "CA"
+      },
+      {
+        label: "CO",
+        value: "CO"
+      },
+      {
+        label: "CT",
+        value: "CT"
+      },
+      {
+        label: "DE",
+        value: "DE"
+      },
+      {
+        label: "FL",
+        value: "FL"
+      },
+      {
+        label: "GA",
+        value: "GA"
+      },
+      {
+        label: "HI",
+        value: "HI"
+      },
+      {
+        label: "ID",
+        value: "ID"
+      },
+      {
+        label: "IL",
+        value: "IL"
+      },
+      {
+        label: "IN",
+        value: "IN"
+      },
+      {
+        label: "AZ",
+        value: "AZ"
+      },
+      {
+        label: "IA",
+        value: "IA"
+      },
+      {
+        label: "KS",
+        value: "KS"
+      },
+      {
+        label: "KY",
+        value: "KY"
+      },
+      {
+        label: "LA",
+        value: "LA"
+      },
+      {
+        label: "MD",
+        value: "MD"
+      },
+      {
+        label: "ME",
+        value: "ME"
+      },
+      {
+        label: "MD",
+        value: "MD"
+      },
+      {
+        label: "MA",
+        value: "MA"
+      },
+      {
+        label: "MI",
+        value: "MI"
+      },
+      {
+        label: "MN",
+        value: "MN"
+      },
+      {
+        label: "MS",
+        value: "MS"
+      },
+      {
+        label: "MO",
+        value: "MO"
+      },
+      {
+        label: "MT",
+        value: "MT"
+      },
+      {
+        label: "NE",
+        value: "NE"
+      },
+      {
+        label: "NV",
+        value: "NV"
+      },
+      {
+        label: "NH",
+        value: "NH"
+      },
+      {
+        label: "NJ",
+        value: "NJ"
+      },
+      {
+        label: "NM",
+        value: "NM"
+      },
+      {
+        label: "NY",
+        value: "NY"
+      },
+      {
+        label: "NC",
+        value: "NC"
+      },
+      {
+        label: "ND",
+        value: "ND"
+      },
+      {
+        label: "OH",
+        value: "OH"
+      },
+      {
+        label: "OK",
+        value: "OK"
+      },
+      {
+        label: "OR",
+        value: "OR"
+      },
+      {
+        label: "PA",
+        value: "PA"
+      },
+      {
+        label: "RI",
+        value: "RI"
+      },
+      {
+        label: "SC",
+        value: "SC"
+      },
+      {
+        label: "SD",
+        value: "SD"
+      },
+      {
+        label: "TN",
+        value: "TN"
+      },
+      {
+        label: "TX",
+        value: "TX"
+      },
+      {
+        label: "UT",
+        value: "UT"
+      },
+      {
+        label: "VT",
+        value: "VT"
+      },
+      {
+        label: "VA",
+        value: "VA"
+      },
+      {
+        label: "WA",
+        value: "WA"
+      },
+      {
+        label: "WV",
+        value: "WV"
+      },
+      {
+        label: "WI",
+        value: "WI"
+      },
+      {
+        label: "WY",
+        value: "WY"
+      }
+    ]
   };
 
   constructor(props) {
     super(props);
     Navigation.events().bindComponent(this);
+    this.inputRefs = {};
+  }
+
+  saveContactAddress = () => {
+    console.log("Address -> " + this.state.controls.address.value);
+    console.log("Address 2 -> " + this.state.address2);
+    console.log("City -> " + this.state.controls.city.value);
+    console.log("ZIP -> " + this.state.controls.zip.value);
+
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        activityDisplay: true
+      };
+    });
+
+    let errors = [];
+
+    if (
+      !validate(
+        this.state.controls.address.value,
+        this.state.controls.address.validationRules
+      )
+    ) {
+      errors.push("- Invalid Address.");
+    }
+
+    if (
+      !validate(
+        this.state.controls.city.value,
+        this.state.controls.city.validationRules
+      )
+    ) {
+      errors.push("- Invalid City.");
+    }
+
+    if (!this.state.selected_state) {
+      errors.push("- Invalid State.");
+    }
+
+    if (
+      !validate(
+        this.state.controls.zip.value,
+        this.state.controls.zip.validationRules
+      )
+    ) {
+      errors.push("- Invalid ZIP Code.");
+    }
+
+    if (errors.length > 0) {
+      this.setState(prevState => {
+        return {
+          ...prevState,
+          activityDisplay: false
+        };
+      });
+      setTimeout(() => {
+        Alert.alert(
+          "Contact Address Error",
+          errors.join("\n"),
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                console.log("OK Pressed");
+              }
+            }
+          ],
+          { cancelable: false }
+        );
+      }, 200);
+    } else {
+      let contact_address = {
+        address: this.state.controls.address.value,
+        address2: this.state.address2,
+        city: this.state.controls.city.value,
+        zip: this.state.controls.zip.value,
+        selected_state: this.state.selected_state
+      };
+      contact_address = JSON.stringify(contact_address);
+      db.transaction(tx => {
+        tx.executeSql(
+          "UPDATE plan SET contact_address = '" +
+            contact_address +
+            "' WHERE ID = 1",
+          [],
+          (tx, results) => {
+            console.log("UPDATING CONTACT ADDRESS", results);
+            if (results.rowsAffected == 1) {
+              this.setState(prevState => {
+                return {
+                  ...prevState,
+                  activityDisplay: false
+                };
+              });
+              this.goToScreen("BillingInformationScreen");
+            }
+          }
+        );
+      });
+    }
+  };
+
+  updateInputState = (key, value) => {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        controls: {
+          ...prevState.controls,
+          [key]: {
+            ...prevState.controls[key],
+            value: value
+          }
+        }
+      };
+    });
+  };
+
+  updateAddress2(a) {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        address2: a
+      };
+    });
   }
 
   navigationButtonPressed({ buttonId }) {
@@ -80,9 +448,27 @@ class ContactAddressScreen extends Component {
     }
   };
 
+  setStateValue = s => {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        selected_state: s
+      };
+    });
+  };
+
   render() {
     return (
       <View style={styles.container}>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={this.state.activityDisplay}
+        >
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <ActivityIndicator size="large" color="#F3407B" />
+          </View>
+        </Modal>
         <View style={styles.topHeader}>
           <TouchableOpacity
             style={styles.button}
@@ -97,46 +483,67 @@ class ContactAddressScreen extends Component {
         <View style={styles.row}>
           <TextInput
             style={styles.emailInput}
-            onChangeText={text => this.setState({ text })}
+            onChangeText={address => this.updateInputState("address", address)}
             placeholder="Street Address"
             placeholderTextColor="#0F195B"
             keyboardType="default"
+            autoCorrect={false}
           />
         </View>
         <View style={styles.row}>
           <TextInput
             style={styles.emailInput}
-            onChangeText={text => this.setState({ text })}
+            onChangeText={address2 => this.updateAddress2(address2)}
             placeholder="Apartment, suite, unit, building, etc"
             placeholderTextColor="#0F195B"
             keyboardType="default"
+            autoCorrect={false}
           />
         </View>
         <View style={styles.row}>
           <View style={styles.containerColStart}>
             <TextInput
               style={styles.firstnameInput}
-              onChangeText={text => this.setState({ text })}
+              onChangeText={city => this.updateInputState("city", city)}
               placeholder="City"
               placeholderTextColor="#0F195B"
+              autoCorrect={false}
             />
           </View>
           <View style={styles.containerColEnd}>
-            <TextInput
-              style={styles.lastnameInput}
-              onChangeText={text => this.setState({ text })}
-              placeholder="State"
-              placeholderTextColor="#0F195B"
+            <RNPickerSelect
+              placeholder={{
+                label: "Select State...",
+                value: null,
+                color: "#01396F"
+              }}
+              items={this.state.items}
+              hideIcon={true}
+              onValueChange={value => {
+                this.setStateValue(value);
+              }}
+              onUpArrow={() => {
+                this.inputRefs.name.focus();
+              }}
+              onDownArrow={() => {
+                this.inputRefs.picker2.togglePicker();
+              }}
+              style={{ ...pickerSelectStyles }}
+              value={this.state.favColor}
+              ref={el => {
+                this.inputRefs.picker = el;
+              }}
             />
           </View>
         </View>
         <View style={styles.row}>
           <TextInput
             style={styles.emailInput}
-            onChangeText={text => this.setState({ text })}
+            onChangeText={zip => this.updateInputState("zip", zip)}
             placeholder="ZIP Code"
             placeholderTextColor="#0F195B"
             keyboardType="number-pad"
+            autoCorrect={false}
           />
         </View>
         <View style={styles.nextBt}>
@@ -157,7 +564,9 @@ class ContactAddressScreen extends Component {
             fontSize={16}
             borderRadius={5}
             marginTop={15}
-            onPressHandler={() => this.goToScreen("BillingInformationScreen")}
+            onPressHandler={() => {
+              this.saveContactAddress();
+            }}
           />
         </View>
         <View style={styles.back}>
@@ -336,6 +745,31 @@ const styles = StyleSheet.create({
     fontFamily: "Avenir",
     marginTop: 10,
     marginBottom: 10
+  }
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingTop: 10,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    borderWidth: 0,
+    borderColor: "gray",
+    borderRadius: 4,
+    backgroundColor: "#efefef",
+    color: "#01396F"
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingTop: 10,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    borderWidth: 0,
+    borderColor: "gray",
+    borderRadius: 4,
+    backgroundColor: "#efefef",
+    color: "#01396F"
   }
 });
 

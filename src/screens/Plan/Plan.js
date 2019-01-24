@@ -6,11 +6,14 @@ import {
   TextInput,
   TouchableWithoutFeedback,
   TouchableOpacity,
-  Modal
+  Modal,
+  Alert
 } from "react-native";
 import { Navigation } from "react-native-navigation";
 import Image from "react-native-remote-svg";
 import CustomButton from "../../components/CustomButton/CustomButton";
+import { openDatabase } from "react-native-sqlite-storage";
+var db = openDatabase({ name: "sepio.db" });
 
 // IMAGES
 import singlePlan from "../../assets/images/single-plan.svg";
@@ -22,7 +25,8 @@ class PlanScreen extends Component {
   state = {
     modalVisible: false,
     menuState: false,
-    currentScreen: false
+    currentScreen: false,
+    selectedPlan: 0
   };
 
   constructor(props) {
@@ -104,6 +108,44 @@ class PlanScreen extends Component {
       });
     }
   };
+
+  selectPlan = p => {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        selectedPlan: p
+      };
+    });
+    db.transaction(tx => {
+      tx.executeSql(
+        "UPDATE plan SET selected_plan = " + p + " WHERE ID = 1",
+        [],
+        (tx, results) => {
+          console.log("Results", results);
+        }
+      );
+    });
+  };
+
+  processPlan() {
+    if (this.state.selectedPlan != 0) {
+      this.goToScreen("ContactInformationScreen");
+    } else {
+      Alert.alert(
+        "Choose Plan",
+        "Please select a Plan.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              console.log("OK Pressed");
+            }
+          }
+        ],
+        { cancelable: false }
+      );
+    }
+  }
 
   render() {
     return (
@@ -218,16 +260,36 @@ class PlanScreen extends Component {
         </View>
         <View style={styles.planSelectors}>
           <View style={styles.planContainer}>
-            <View style={styles.buttonBg}>
-              <TouchableWithoutFeedback style={styles.button}>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                this.selectPlan(1);
+              }}
+            >
+              <View
+                style={
+                  this.state.selectedPlan == 1
+                    ? styles.buttonBgSelected
+                    : styles.buttonBg
+                }
+              >
                 <Image source={singlePlan} />
-              </TouchableWithoutFeedback>
-            </View>
-            <View style={styles.buttonBg}>
-              <TouchableWithoutFeedback style={styles.button}>
+              </View>
+            </TouchableWithoutFeedback>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                this.selectPlan(2);
+              }}
+            >
+              <View
+                style={
+                  this.state.selectedPlan == 2
+                    ? styles.buttonBgSelected
+                    : styles.buttonBg
+                }
+              >
                 <Image source={spousePlan} />
-              </TouchableWithoutFeedback>
-            </View>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
           <View style={styles.planDescription}>
             <View style={styles.containerText}>
@@ -254,7 +316,7 @@ class PlanScreen extends Component {
             fontSize={16}
             borderRadius={5}
             marginTop={15}
-            onPressHandler={() => this.goToScreen("ContactInformationScreen")}
+            onPressHandler={() => this.processPlan()}
           />
         </View>
         <View style={styles.sendLink}>
@@ -343,6 +405,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     borderRadius: 5
+  },
+  buttonBgSelected: {
+    width: 150,
+    height: 150,
+    backgroundColor: "#F3F3F7",
+    justifyContent: "space-around",
+    alignItems: "center",
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: "#01396F"
   },
   planDescription: {
     justifyContent: "space-around",

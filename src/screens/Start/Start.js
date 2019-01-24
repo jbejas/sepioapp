@@ -1,12 +1,131 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View } from "react-native";
+AsyncStorage;
+import { StyleSheet, Text, View, AsyncStorage } from "react-native";
 import { Navigation } from "react-native-navigation";
 import Image from "react-native-remote-svg";
+import { openDatabase } from "react-native-sqlite-storage";
+var db = openDatabase({ name: "sepio.db" });
 
 import logo from "../../assets/images/logo.svg";
 import CustomButton from "../../components/CustomButton/CustomButton";
 
 class StartScreen extends Component {
+  constructor(props) {
+    super(props);
+    Navigation.events().bindComponent(this);
+    setTimeout(() => {
+      console.log("Get Login Data");
+      this.createDB();
+      this.getLogin();
+    }, 200);
+  }
+
+  errorCB(err) {
+    console.log("SQL Error: " + err);
+  }
+
+  successCB() {
+    console.log("SQL executed fine");
+  }
+
+  openCB() {
+    console.log("Database OPENED");
+  }
+
+  createDB = () => {
+    console.log("Creating DB");
+    /*db.transaction(tx => {
+      tx.executeSql("DROP TABLE login;", [], (tx, results) => {
+        console.log("DROP TABLE LOGIN", results);
+        tx.executeSql(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='login';",
+          [],
+          (tx, results) => {
+            console.log("GET TABLE NAME", results.rows.item(0).name);
+          }
+        );
+      });
+      tx.executeSql("DROP TABLE plan;", [], (tx, results) => {
+        console.log("DROP TABLE PLAN", results);
+      });
+    });*/
+    db.transaction(tx => {
+      tx.executeSql(
+        "CREATE TABLE IF NOT EXISTS login (ID INT NOT NULL, status VARCHAR (2) NOT NULL, uid VARCHAR (255) NULL, email VARCHAR (255) NULL, first_name VARCHAR (255) NULL, last_name VARCHAR (255) NULL, phone VARCHAR (255) NULL, employer VARCHAR (255) NULL);",
+        [],
+        (tx, results) => {
+          console.log("TABLE LOGIN CREATED", results);
+          tx.executeSql(
+            "SELECT status FROM login WHERE ID = 1",
+            [],
+            (tx, results) => {
+              console.log("CHECK IF ID 1 ON LOGIN EXISTS", results);
+              if (results.rows.length == 0) {
+                tx.executeSql(
+                  "INSERT INTO login (ID,status) VALUES (1,'no');",
+                  [],
+                  (tx, results) => {
+                    console.log("INITIAL INSERT OF LOGIN DATA", results);
+                  },
+                  err => {
+                    console.log("Error inserting login data", err);
+                  }
+                );
+              }
+            },
+            err => {
+              console.log("Error checking login existence", err);
+            }
+          );
+        }
+      );
+      tx.executeSql(
+        "CREATE TABLE IF NOT EXISTS plan (ID INT NOT NULL, selected_plan VARCHAR (2) NOT NULL, contact_information TEXT NULL, contact_address TEXT NULL, billing_info TEXT NULL, cc_info TEXT NULL);",
+        [],
+        (tx, results) => {
+          console.log("TABLE PLAN CREATED", results);
+          tx.executeSql(
+            "SELECT selected_plan FROM plan WHERE ID = 1",
+            [],
+            (tx, results) => {
+              console.log("CHECK IF ID 1 ON PLAN EXISTS", results);
+              if (results.rows.length == 0) {
+                tx.executeSql(
+                  "INSERT INTO plan (ID,selected_plan) VALUES (1,'no');",
+                  [],
+                  (tx, results) => {
+                    console.log("INITIAL INSERT OF PLAN DATA", results);
+                  },
+                  err => {
+                    console.log("Error inserting plan data", err);
+                  }
+                );
+              }
+            },
+            err => {
+              console.log("Error checking plan existence", err);
+            }
+          );
+        }
+      );
+    });
+  };
+
+  getLogin = async () => {
+    db.transaction(tx => {
+      tx.executeSql(
+        "SELECT status FROM login WHERE ID = 1",
+        [],
+        (tx, results) => {
+          console.log("Result -> ", results.rows.item(0).status);
+          if (results.rows.item(0).status == "ok") {
+            this.goToScreen("PlanScreen");
+          }
+        }
+      );
+    });
+  };
+
   goToScreen = screenName => {
     Navigation.push(this.props.componentId, {
       component: {

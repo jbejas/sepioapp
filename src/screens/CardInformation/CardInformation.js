@@ -4,11 +4,18 @@ import {
   Text,
   View,
   TextInput,
-  TouchableOpacity
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  Modal
 } from "react-native";
 import { Navigation } from "react-native-navigation";
-import CustomButton from "../../components/CustomButton/CustomButton";
 import Image from "react-native-remote-svg";
+import RNPickerSelect from "react-native-picker-select";
+import validate from "../../utility/validation";
+import CustomButton from "../../components/CustomButton/CustomButton";
+import { openDatabase } from "react-native-sqlite-storage";
+var db = openDatabase({ name: "sepio.db" });
 
 // IMAGES
 import scan from "../../assets/images/scan.svg";
@@ -16,12 +23,126 @@ import menu from "../../assets/images/menu.png";
 
 class CardInformationScreen extends Component {
   state = {
-    menuState: false
+    menuState: false,
+    activityDisplay: false,
+    selectedMonth: 0,
+    selectedYear: 0,
+    controls: {
+      card_name: {
+        value: "",
+        valid: false,
+        validationRules: {
+          minLength: 2
+        }
+      },
+      card_number: {
+        value: "",
+        valid: false,
+        validationRules: {
+          minLength: 16
+        }
+      },
+      ccv: {
+        value: "",
+        valid: false,
+        validationRules: {
+          minLength: 3
+        }
+      }
+    },
+    years: [
+      {
+        value: 0,
+        label: "--"
+      }
+    ],
+    months: [
+      {
+        value: 1,
+        label: "January"
+      },
+      {
+        value: 2,
+        label: "February"
+      },
+      {
+        value: 3,
+        label: "March"
+      },
+      {
+        value: 4,
+        label: "April"
+      },
+      {
+        value: 5,
+        label: "May"
+      },
+      {
+        value: 6,
+        label: "June"
+      },
+      {
+        value: 7,
+        label: "July"
+      },
+      {
+        value: 8,
+        label: "August"
+      },
+      {
+        value: 9,
+        label: "September"
+      },
+      {
+        value: 10,
+        label: "October"
+      },
+      {
+        value: 11,
+        label: "November"
+      },
+      {
+        value: 12,
+        label: "December"
+      }
+    ]
   };
 
   constructor(props) {
     super(props);
     Navigation.events().bindComponent(this);
+    this.inputRefs = {};
+  }
+
+  componentDidMount() {
+    console.log("Component Did Mount");
+
+    if (this.props.card) {
+      this.updateInputState("card_number", this.props.card.cardNumber);
+      this.setYear(this.props.card.expiryYear);
+      this.setMonth(this.props.card.expiryMonth);
+    }
+
+    let current_year = new Date().getFullYear();
+    let max_year = current_year + 10;
+    let years = [];
+    for (let i = current_year; i <= max_year; i++) {
+      years.push({
+        label: current_year.toString(),
+        value: current_year
+      });
+      current_year++;
+    }
+
+    console.log("Years", years);
+
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        years: years
+      };
+    });
+    console.log("Years", years);
   }
 
   navigationButtonPressed({ buttonId }) {
@@ -82,9 +203,154 @@ class CardInformationScreen extends Component {
     }
   };
 
+  setMonth(d) {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        selectedMonth: d
+      };
+    });
+  }
+
+  setYear(d) {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        selectedYear: d
+      };
+    });
+  }
+
+  updateInputState = (key, value) => {
+    console.log("Key -> " + key);
+    console.log("Value -> " + value);
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        controls: {
+          ...prevState.controls,
+          [key]: {
+            ...prevState.controls[key],
+            value: value
+          }
+        }
+      };
+    });
+  };
+
+  setCCInfo = () => {
+    console.log("Name on Card -> " + this.state.controls.card_name.value);
+    console.log("Card Number -> " + this.state.controls.card_number.value);
+    console.log("CCV -> " + this.state.controls.ccv.value);
+
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        activityDisplay: true
+      };
+    });
+
+    let errors = [];
+
+    if (
+      !validate(
+        this.state.controls.card_name.value,
+        this.state.controls.card_name.validationRules
+      )
+    ) {
+      errors.push("- Please add the Name on the Card.");
+    }
+
+    if (
+      !validate(
+        this.state.controls.card_number.value,
+        this.state.controls.card_number.validationRules
+      )
+    ) {
+      errors.push("- Card Number Invalid.");
+    }
+
+    if (
+      !validate(
+        this.state.controls.ccv.value,
+        this.state.controls.ccv.validationRules
+      )
+    ) {
+      errors.push("- Invalid Security Code Number.");
+    }
+
+    if (this.state.selectedMonth == 0) {
+      errors.push("- Please select the Expiration Month.");
+    }
+
+    if (this.state.selectedYear == 0) {
+      errors.push("- Please select the Expiration Year.");
+    }
+
+    if (errors.length > 0) {
+      this.setState(prevState => {
+        return {
+          ...prevState,
+          activityDisplay: false
+        };
+      });
+      setTimeout(() => {
+        Alert.alert(
+          "Credit Card Information Error",
+          errors.join("\n"),
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                console.log("OK Pressed");
+              }
+            }
+          ],
+          { cancelable: false }
+        );
+      }, 200);
+    } else {
+      let credit_card = {
+        card_name: this.state.controls.card_name.value,
+        card_number: this.state.controls.card_number.value,
+        ccv: this.state.controls.ccv.value,
+        month: this.state.selectedMonth,
+        year: this.state.selectedYear
+      };
+      credit_card = JSON.stringify(credit_card);
+      db.transaction(tx => {
+        tx.executeSql(
+          "UPDATE plan SET cc_info = '" + credit_card + "' WHERE ID = 1",
+          [],
+          (tx, results) => {
+            console.log("UPDATING CC INFO", results);
+            if (results.rowsAffected == 1) {
+              this.setState(prevState => {
+                return {
+                  ...prevState,
+                  activityDisplay: false
+                };
+              });
+              this.goToScreen("PaymentOptionsScreen");
+            }
+          }
+        );
+      });
+    }
+  };
+
   render() {
     return (
       <View style={styles.container}>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={this.state.activityDisplay}
+        >
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <ActivityIndicator size="large" color="#F3407B" />
+          </View>
+        </Modal>
         <View style={styles.topHeader}>
           <TouchableOpacity
             style={styles.button}
@@ -108,7 +374,7 @@ class CardInformationScreen extends Component {
         <View style={styles.row}>
           <TextInput
             style={styles.emailInput}
-            onChangeText={text => this.setState({ text })}
+            onChangeText={value => this.updateInputState("card_name", value)}
             placeholder="Name on Card"
             placeholderTextColor="#0F195B"
             keyboardType="default"
@@ -117,7 +383,8 @@ class CardInformationScreen extends Component {
         <View style={styles.row}>
           <TextInput
             style={styles.emailInput}
-            onChangeText={text => this.setState({ text })}
+            onChangeText={value => this.updateInputState("card_number", value)}
+            value={this.state.controls.card_number.value}
             placeholder="Card Number"
             placeholderTextColor="#0F195B"
             keyboardType="number-pad"
@@ -126,7 +393,8 @@ class CardInformationScreen extends Component {
         <View style={styles.row}>
           <TextInput
             style={styles.emailInput}
-            onChangeText={text => this.setState({ text })}
+            onChangeText={value => this.updateInputState("ccv", value)}
+            value={this.state.controls.ccv.value}
             placeholder="Security Code"
             placeholderTextColor="#0F195B"
             keyboardType="number-pad"
@@ -137,19 +405,53 @@ class CardInformationScreen extends Component {
         </View>
         <View style={styles.row}>
           <View style={styles.containerColStart}>
-            <TextInput
-              style={styles.firstnameInput}
-              onChangeText={text => this.setState({ text })}
-              placeholder="Month"
-              placeholderTextColor="#0F195B"
+            <RNPickerSelect
+              placeholder={{
+                label: "Select Month...",
+                value: null,
+                color: "#01396F"
+              }}
+              items={this.state.months}
+              hideIcon={true}
+              onValueChange={value => {
+                this.setMonth(value);
+              }}
+              value={this.state.selectedMonth}
+              onUpArrow={() => {
+                this.inputRefs.name.focus();
+              }}
+              onDownArrow={() => {
+                this.inputRefs.picker2.togglePicker();
+              }}
+              style={{ ...pickerSelectStyles }}
+              ref={el => {
+                this.inputRefs.picker = el;
+              }}
             />
           </View>
           <View style={styles.containerColEnd}>
-            <TextInput
-              style={styles.lastnameInput}
-              onChangeText={text => this.setState({ text })}
-              placeholder="Year"
-              placeholderTextColor="#0F195B"
+            <RNPickerSelect
+              placeholder={{
+                label: "Select Year...",
+                value: null,
+                color: "#01396F"
+              }}
+              items={this.state.years}
+              hideIcon={true}
+              onValueChange={value => {
+                this.setYear(value);
+              }}
+              value={this.state.selectedYear}
+              onUpArrow={() => {
+                this.inputRefs.name.focus();
+              }}
+              onDownArrow={() => {
+                this.inputRefs.picker2.togglePicker();
+              }}
+              style={{ ...pickerSelectStyles }}
+              ref={el => {
+                this.inputRefs.picker = el;
+              }}
             />
           </View>
         </View>
@@ -171,7 +473,7 @@ class CardInformationScreen extends Component {
             fontSize={16}
             borderRadius={5}
             marginTop={15}
-            onPressHandler={() => this.goToScreen("PaymentOptionsScreen")}
+            onPressHandler={() => this.setCCInfo()}
           />
         </View>
         <View style={styles.back}>
@@ -366,6 +668,31 @@ const styles = StyleSheet.create({
     fontFamily: "Avenir",
     marginTop: 10,
     marginBottom: 10
+  }
+});
+
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingTop: 10,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    borderWidth: 0,
+    borderColor: "gray",
+    borderRadius: 4,
+    backgroundColor: "#efefef",
+    color: "#01396F"
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingTop: 10,
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+    borderWidth: 0,
+    borderColor: "gray",
+    borderRadius: 4,
+    backgroundColor: "#efefef",
+    color: "#01396F"
   }
 });
 

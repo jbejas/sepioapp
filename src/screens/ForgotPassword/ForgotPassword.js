@@ -13,14 +13,11 @@ import Image from "react-native-remote-svg";
 //import { connect } from 'react-redux';
 //import { addPlace } from '../../store/actions/index';
 import validate from "../../utility/validation";
-import { openDatabase } from "react-native-sqlite-storage";
-var db = openDatabase({ name: "sepio.db" });
 
 import logo from "../../assets/images/logo.svg";
 import CustomButton from "../../components/CustomButton/CustomButton";
-import CustomButtonMultiColor from "../../components/CustomButtonMultiColor/CustomButtonMultiColor";
 
-class LoginScreen extends Component {
+class ForgotPasswordScreen extends Component {
   state = {
     activityDisplay: false,
     controls: {
@@ -30,13 +27,6 @@ class LoginScreen extends Component {
         validationRules: {
           isEmail: true
         }
-      },
-      password: {
-        value: "",
-        valid: false,
-        validationRules: {
-          minLength: 6
-        }
       }
     }
   };
@@ -44,19 +34,6 @@ class LoginScreen extends Component {
   constructor(props) {
     super(props);
     Navigation.events().bindComponent(this);
-    /*Navigation.mergeOptions(this.props.componentId, {
-      topBar: {
-        visible: true,
-        hideOnScroll: false,
-        background: {
-          color: "#FFFFFF"
-        },
-        noBorder: true,
-        backButton: {
-          color: "#FFF"
-        }
-      }
-    });*/
   }
 
   updateInputState = (key, value) => {
@@ -73,85 +50,8 @@ class LoginScreen extends Component {
     });
   };
 
-  storeLogin = async data => {
-    let uid = JSON.parse(data._bodyText);
-    fetch(
-      "https://sepioguard-test-api.herokuapp.com/v1/salesperson/" + uid.id,
-      {
-        method: "GET",
-        credentials: "include"
-      }
-    )
-      .then(response => {
-        console.log("Get User Data", response);
-        if (response.status === 202) {
-          let user = JSON.parse(response._bodyText);
-          db.transaction(tx => {
-            tx.executeSql(
-              "UPDATE login SET status = 'ok', uid = '" +
-                user.id +
-                "', email = '" +
-                user.emailAddress +
-                "', first_name = '" +
-                user.firstName +
-                "', last_name = '" +
-                user.lastName +
-                "', phone = '" +
-                user.phone +
-                "', employer = '" +
-                user.employer.id +
-                "' WHERE ID = 1",
-              [],
-              (tx, results) => {
-                console.log("UPDATING STATUS", results);
-                if (results.rowsAffected == 1) {
-                  this.setState(prevState => {
-                    return {
-                      ...prevState,
-                      activityDisplay: false
-                    };
-                  });
-                  this.goToScreen("PlanScreen");
-                }
-              }
-            );
-          });
-        } else {
-          console.log("Error recovering user data");
-        }
-      })
-      .catch(error => {
-        console.log("Error Login", error._bodyText);
-        this.setState(prevState => {
-          return {
-            ...prevState,
-            activityDisplay: false
-          };
-        });
-        setTimeout(() => {
-          Alert.alert(
-            "Login Error",
-            "The Email or Password entered are incorrect.",
-            [
-              {
-                text: "OK",
-                onPress: () => {
-                  console.log("OK Pressed");
-                  this.updateInputState("email", "");
-                  this.updateInputState("password", "");
-                  this.emailInput.focus();
-                }
-              }
-            ],
-            { cancelable: false }
-          );
-        }, 200);
-      });
-  };
-
-  login = () => {
+  getPassword = () => {
     console.log("Email -> " + this.state.controls.email.value);
-    console.log("Password -> " + this.state.controls.password.value);
 
     this.setState(prevState => {
       return {
@@ -174,25 +74,6 @@ class LoginScreen extends Component {
       console.log("Email Valid");
     }
 
-    if (
-      !validate(
-        this.state.controls.password.value,
-        this.state.controls.password.validationRules
-      )
-    ) {
-      errors.push(
-        "- Password should have at least " +
-          this.state.controls.password.validationRules.minLength +
-          " characters."
-      );
-      console.log("Password InValid");
-    } else {
-      console.log("Password Valid");
-    }
-
-    console.log("Errors", errors);
-    console.log("Errors Length", errors.length);
-
     if (errors.length > 0) {
       this.setState(prevState => {
         return {
@@ -202,7 +83,7 @@ class LoginScreen extends Component {
       });
       setTimeout(() => {
         Alert.alert(
-          "Login Error",
+          "Password Recover Error",
           errors.join("\n"),
           [
             {
@@ -219,18 +100,34 @@ class LoginScreen extends Component {
         );
       }, 200);
     } else {
-      fetch("https://sepioguard-test-api.herokuapp.com/v1/auth/login", {
-        method: "POST",
-        credentials: "include",
-        body: JSON.stringify({
-          emailAddress: this.state.controls.email.value,
-          password: this.state.controls.password.value
-        })
-      })
+      fetch(
+        "https://sepioguard-test-api.herokuapp.com/v1/auth/send-password-recovery-email",
+        {
+          method: "POST",
+          credentials: "include",
+          body: JSON.stringify({
+            emailAddress: this.state.controls.email.value
+          })
+        }
+      )
         .then(response => {
-          console.log("Response Login", response);
+          console.log("Response Recover Password", response);
           if (response.status == 200) {
-            this.storeLogin(response);
+            Alert.alert(
+              "Password Recovery",
+              "Instructions on how to recover your password has been sent to the entered Email.",
+              [
+                {
+                  text: "OK",
+                  onPress: () => {
+                    console.log("OK Pressed");
+                    this.updateInputState("email", "");
+                    this.emailInput.focus();
+                  }
+                }
+              ],
+              { cancelable: false }
+            );
           } else {
             this.setState(prevState => {
               return {
@@ -240,8 +137,8 @@ class LoginScreen extends Component {
             });
             setTimeout(() => {
               Alert.alert(
-                "Login Error",
-                "The Email or Password entered are incorrect.",
+                "Password Recovery Error",
+                "The Email entered does not exist.",
                 [
                   {
                     text: "OK",
@@ -268,8 +165,8 @@ class LoginScreen extends Component {
           });
           setTimeout(() => {
             Alert.alert(
-              "Login Error",
-              "The Email or Password entered are incorrect.",
+              "Password Recovery Error",
+              "The Email entered does not exist.",
               [
                 {
                   text: "OK",
@@ -315,7 +212,7 @@ class LoginScreen extends Component {
 
         <View style={styles.container1}>
           <Image source={logo} />
-          <Text style={styles.text1}>Log In</Text>
+          <Text style={styles.text1}>Recover Password</Text>
           <TextInput
             placeholder="Email Address"
             style={styles.emailInput}
@@ -327,20 +224,10 @@ class LoginScreen extends Component {
             autoCapitalize="none"
             placeholderTextColor="#0F195B"
             keyboardType="email-address"
-          />
-          <TextInput
-            placeholder="Password"
-            style={styles.passwordInput}
-            value={this.state.controls.password.value}
-            onChangeText={password =>
-              this.updateInputState("password", password)
-            }
-            autoCapitalize="none"
-            placeholderTextColor="#0F195B"
-            secureTextEntry
+            autoCorrect={false}
           />
           <CustomButton
-            title="LOG IN"
+            title="RECOVER PASSWORD"
             width="90%"
             bgColor="#F3407B"
             paddingTop={14}
@@ -359,10 +246,10 @@ class LoginScreen extends Component {
             borderColor="#F3407B"
             fontFamily="Avenir"
             fontSize={16}
-            onPressHandler={() => this.login()}
+            onPressHandler={() => this.getPassword()}
           />
           <CustomButton
-            title="Forgot Password?"
+            title="BACK"
             width="90%"
             bgColor="#FFFFFF"
             paddingTop={14}
@@ -380,34 +267,10 @@ class LoginScreen extends Component {
             borderColor="#F3407B"
             fontFamily="Avenir"
             fontSize={16}
-            onPressHandler={() => this.goToScreen("ForgotPasswordScreen")}
-          />
-        </View>
-        <View style={styles.container2}>
-          <CustomButtonMultiColor
-            title="Already have an account?"
-            secondTitle=" Sign In"
-            width="90%"
-            bgColor="#FFFFFF"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            marginTop={0}
-            marginRight={0}
-            marginBottom={0}
-            marginLeft={0}
-            borderRadius={5}
-            textAlign="center"
-            color="#0F195B"
-            secondColor="#F3407B"
-            borderWith={1}
-            borderColor="#F3407B"
-            fontFamily="Avenir"
-            fontSize={16}
             onPressHandler={() => this.goBack()}
           />
         </View>
+        <View style={styles.container2} />
       </View>
     );
   }
@@ -474,4 +337,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default LoginScreen;
+export default ForgotPasswordScreen;
