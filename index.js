@@ -31,6 +31,8 @@ import ForgotPasswordScreen from "./src/screens/ForgotPassword/ForgotPassword";
 import SettingsScreen from "./src/screens/Settings/Settings";
 import CustomersScreen from "./src/screens/Customers/Customers";
 
+console.disableYellowBox = true;
+
 Navigation.registerComponent("StartScreen", () => StartScreen);
 Navigation.registerComponent("LoginScreen", () => LoginScreen);
 Navigation.registerComponent("SignupScreen", () => SignupScreen);
