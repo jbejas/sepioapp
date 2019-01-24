@@ -23,6 +23,7 @@ class PaymentOptionsScreen extends Component {
     setContent: 1,
     menuState: false,
     payment: 0,
+    customer: 0,
     items: [
       {
         value: "120",
@@ -48,6 +49,69 @@ class PaymentOptionsScreen extends Component {
     Navigation.events().bindComponent(this);
     this.inputRefs = {};
   }
+
+  componentDidMount() {
+    db.transaction(tx => {
+      tx.executeSql("SELECT * FROM login WHERE ID = 1", [], (tx, results) => {
+        console.log("Results", results.rows.item(0));
+        if (results.rows.item(0).uid) {
+          fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
+            method: "GET",
+            credentials: "include"
+          })
+            .then(response => {
+              console.log("Response Customers", response);
+              let c = JSON.parse(response._bodyText);
+              let customers = [];
+
+              for (var i = 0; i < c.length; i++) {
+                var date = new Date(parseInt(c[i]["createdAt"]));
+                var month = date.getMonth() + 1;
+                if (month < 10) {
+                  month = "0" + month;
+                }
+                var day = date.getDay();
+                if (day < 10) {
+                  day = "0" + day;
+                }
+                var year = date.getFullYear();
+                var formattedTime = month + "/" + day + "/" + year;
+
+                if (c[i].vendor == results.rows.item(0).employer) {
+                  customers.push({
+                    value: c[i]["id"],
+                    label: c[i]["firstName"] + " " + c[i]["lastName"]
+                  });
+                }
+              }
+
+              if (customers.length == 0) {
+                console.log("No Customers");
+              } else {
+                this.setState(prevState => {
+                  return {
+                    ...prevState,
+                    customers: customers
+                  };
+                });
+              }
+            })
+            .catch(error => {
+              console.log('Error retrieveing customers.')
+            });
+        }
+      });
+    });
+  }
+
+  setCustomer = value => {
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        customer: value
+      };
+    });
+  };
 
   setModalVisible(visible, content) {
     this.setState({ setContent: content, modalVisible: visible });
@@ -92,7 +156,7 @@ class PaymentOptionsScreen extends Component {
     if (this.state.setContent == 2) {
       this.setState({ modalVisible: true });
     } else {
-      Navigation.popToRoot(this.props.componentId);
+      Navigation.goToScreen("PlanScreen");
     }
   };
 
@@ -219,13 +283,28 @@ class PaymentOptionsScreen extends Component {
         <Text style={styles.text3}>out the form themselves. Please</Text>
         <Text style={styles.text3}>choose one of the options below.</Text>
         <View style={[styles.row, styles.selectBox]}>
-          <TextInput
-            style={styles.select}
-            onChangeText={text => this.setState({ text })}
-            placeholder="Select a Customer"
-            placeholderTextColor="#0F195B"
+        <RNPickerSelect
+            placeholder={{
+              label: "Select Payment Option...",
+              value: null,
+              color: "#01396F"
+            }}
+            items={this.state.customers}
+            hideIcon={true}
+            onValueChange={value => {
+              this.setCustomer(value);
+            }}
+            onUpArrow={() => {
+              this.inputRefs.name.focus();
+            }}
+            onDownArrow={() => {
+              this.inputRefs.picker2.togglePicker();
+            }}
+            style={{ ...pickerSelectStyles }}
+            ref={el => {
+              this.inputRefs.picker = el;
+            }}
           />
-          <Image style={styles.arrow} source={arrow} />
         </View>
         <View style={[styles.row, styles.selectBox]}>
           <TextInput
