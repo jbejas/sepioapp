@@ -87,7 +87,11 @@ class BillingInformationScreen extends Component {
 
   processBilling() {
     if (this.state.selectedPayment != 0) {
-      this.goToScreen("CardInformationScreen");
+      if (this.state.selectedPayment == 1) {
+        this.goToScreen("CardInformationScreen");
+      } else {
+        this.goToScreen("BankInformationScreen");
+      }
     } else {
       Alert.alert(
         "Choose Plan",

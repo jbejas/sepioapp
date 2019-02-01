@@ -25,6 +25,7 @@ import ContactInformationScreen from "./src/screens/ContactInformation/ContactIn
 import ContactAddressScreen from "./src/screens/ContactAddress/ContactAddress";
 import BillingInformationScreen from "./src/screens/BillingInformation/BillingInformation";
 import CardInformationScreen from "./src/screens/CardInformation/CardInformation";
+import BankInformationScreen from "./src/screens/BankInformation/BankInformation";
 import PaymentOptionsScreen from "./src/screens/PaymentOptions/PaymentOptions";
 import MenuScreen from "./src/screens/Menu/Menu";
 import ForgotPasswordScreen from "./src/screens/ForgotPassword/ForgotPassword";
@@ -41,6 +42,11 @@ Navigation.registerComponent("CardScannerScreen", () => CardScannerScreen);
 Navigation.registerComponent(
   "ContactInformationScreen",
   () => ContactInformationScreen
+);
+
+Navigation.registerComponent(
+  "BankInformationScreen",
+  () => BankInformationScreen
 );
 
 Navigation.registerComponent(
@@ -117,8 +123,8 @@ Navigation.events().registerAppLaunchedListener(() => {
               {
                 component: {
                   id: "AppStack",
-                  name: "StartScreen"
-                  //name: "PaymentOptionsScreen"
+                  //name: "StartScreen"
+                  name: "PaymentOptionsScreen"
                 }
               }
             ]

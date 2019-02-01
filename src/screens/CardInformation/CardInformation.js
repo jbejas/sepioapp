@@ -317,21 +317,34 @@ class CardInformationScreen extends Component {
         month: this.state.selectedMonth,
         year: this.state.selectedYear
       };
+      let bank_info = {
+        info: "no"
+      };
       credit_card = JSON.stringify(credit_card);
+      bank_info = JSON.stringify(bank_info);
       db.transaction(tx => {
         tx.executeSql(
-          "UPDATE plan SET cc_info = '" + credit_card + "' WHERE ID = 1",
+          "UPDATE plan SET bank_info = '" + bank_info + "' WHERE ID = 1",
           [],
           (tx, results) => {
-            console.log("UPDATING CC INFO", results);
+            console.log("UPDATING BANK INFO", results);
             if (results.rowsAffected == 1) {
-              this.setState(prevState => {
-                return {
-                  ...prevState,
-                  activityDisplay: false
-                };
-              });
-              this.goToScreen("PaymentOptionsScreen");
+              tx.executeSql(
+                "UPDATE plan SET cc_info = '" + credit_card + "' WHERE ID = 1",
+                [],
+                (tx, results) => {
+                  console.log("UPDATING CC INFO", results);
+                  if (results.rowsAffected == 1) {
+                    this.setState(prevState => {
+                      return {
+                        ...prevState,
+                        activityDisplay: false
+                      };
+                    });
+                    this.goToScreen("PaymentOptionsScreen");
+                  }
+                }
+              );
             }
           }
         );

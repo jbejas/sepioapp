@@ -80,7 +80,7 @@ class StartScreen extends Component {
         }
       );
       tx.executeSql(
-        "CREATE TABLE IF NOT EXISTS plan (ID INT NOT NULL, selected_plan VARCHAR (2) NOT NULL, contact_information TEXT NULL, contact_address TEXT NULL, billing_info TEXT NULL, cc_info TEXT NULL);",
+        "CREATE TABLE IF NOT EXISTS plan (ID INT NOT NULL, selected_plan VARCHAR (2) NOT NULL, contact_information TEXT NULL, contact_address TEXT NULL, billing_info TEXT NULL, cc_info TEXT NULL, bank_info TEXT NULL);",
         [],
         (tx, results) => {
           console.log("TABLE PLAN CREATED", results);

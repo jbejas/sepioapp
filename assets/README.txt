@@ -150,3 +150,34 @@ id: string [required]
 {
     payload: ref [required]
 }
+
+Stripe:
+
+Publishable Key: pk_test_zv0rLIanDWzfVBSco2aQHASv
+
+Secret Key: sk_test_yQUMVFqMVyDKM6GNWUNs45nw
+
+I think most of the notes so far are these:
+
+
+
+Payment plans. There should be three options-
+
+
+Single pay - $449 - twelvePayment
+Three months - $150 - threePayment
+12 months - $45 - singlePayment
+For some reason, we're seeing 4 I believe. Is that on Stripe's end or on the app end?
+
+
+
+Screens not working. Tried customers page and wasn't loading yet. Also, app breaks when trying to send text. Normal in simulator? Or still needs to be completed?
+
+
+ACH payment doesn't go to separate form at this point (Bank account info for Routing and Checking numbers for bank)
+
+
+Change "Add Spouse" to "Add Family Member / Partner"
+
+
+If Family Member / Partner is clicked, the form will go through "Contact Information", then "Family Member / Partner Information", then Contact Address with a check box for "Family Member / Partner lives at the same address" checked by default. If unchecked, there will be a Family Member / Partner Address page as well

@@ -84,7 +84,7 @@ class PlanScreen extends Component {
               }
             })
             .catch(error => {
-              console.log('Error retrieveing customers.')
+              console.log("Error retrieveing customers.");
             });
         }
       });
@@ -217,7 +217,7 @@ class PlanScreen extends Component {
               <Text style={styles.text3}>out the form themselves. Please</Text>
               <Text style={styles.text3}>choose one of the options below.</Text>
               <View style={[styles.row, styles.selectBox]}>
-              <RNPickerSelect
+                <RNPickerSelect
                   placeholder={{
                     label: "Select Customer...",
                     value: null,
@@ -359,7 +359,9 @@ class PlanScreen extends Component {
               <Text style={styles.textPlan}>Single Plan</Text>
             </View>
             <View style={styles.containerText}>
-              <Text style={styles.textPlan}>Add Spouse</Text>
+              <Text style={styles.textPlan}>
+                Add Family{"\n"}Member / Partner
+              </Text>
             </View>
           </View>
           <CustomButton
@@ -507,7 +509,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Avenir",
     marginTop: 10,
-    marginBottom: 10
+    marginBottom: 10,
+    textAlign: "center",
+    width: "100%"
+  },
+  containerText: {
+    width: "50%"
   },
   pink: {
     color: "#F3407B",

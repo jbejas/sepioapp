@@ -5,41 +5,55 @@ import {
   View,
   TextInput,
   Modal,
-  TouchableOpacity
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator
 } from "react-native";
 import { Navigation } from "react-native-navigation";
 import CustomButton from "../../components/CustomButton/CustomButton";
 import RNPickerSelect from "react-native-picker-select";
 import Image from "react-native-remote-svg";
-import arrow from "../../assets/images/arrow-down.svg";
+import stripe from "tipsi-stripe";
 import party from "../../assets/images/party.svg";
 import menu from "../../assets/images/menu.png";
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
 
+stripe.setOptions({
+  publishableKey: "pk_test_zv0rLIanDWzfVBSco2aQHASv"
+});
+
+const theme = {
+  primaryBackgroundColor: "#FFFFFF",
+  secondaryBackgroundColor: "#01396F",
+  primaryForegroundColor: "#FFFFFF",
+  secondaryForegroundColor: "#01396F",
+  accentColor: "#F3407B",
+  errorColor: "#F3407B"
+};
+
 class PaymentOptionsScreen extends Component {
   state = {
+    activityDisplay: false,
     modalVisible: false,
     setContent: 1,
     menuState: false,
     payment: 0,
     customer: 0,
+    plan: 0,
+    method_data: 0,
     items: [
       {
-        value: "120",
-        label: "1 Month - $120"
+        value: "449",
+        label: "Single pay - $449"
       },
       {
         value: "150",
-        label: "3 Months - $150"
+        label: "Three months - $150"
       },
       {
-        value: "200",
-        label: "1 Month - $200"
-      },
-      {
-        value: "220",
-        label: "1 Month - $220"
+        value: "45",
+        label: "12 months - $45"
       }
     ]
   };
@@ -48,6 +62,10 @@ class PaymentOptionsScreen extends Component {
     super(props);
     Navigation.events().bindComponent(this);
     this.inputRefs = {};
+    stripe.setOptions({
+      publishableKey: "pk_test_zv0rLIanDWzfVBSco2aQHASv",
+      androidPayMode: "test" // Android only
+    });
   }
 
   componentDidMount() {
@@ -97,7 +115,7 @@ class PaymentOptionsScreen extends Component {
               }
             })
             .catch(error => {
-              console.log('Error retrieveing customers.')
+              console.log("Error retrieveing customers.");
             });
         }
       });
@@ -156,7 +174,7 @@ class PaymentOptionsScreen extends Component {
     if (this.state.setContent == 2) {
       this.setState({ modalVisible: true });
     } else {
-      Navigation.goToScreen("PlanScreen");
+      this.goToScreen("PlanScreen");
     }
   };
 
@@ -193,38 +211,289 @@ class PaymentOptionsScreen extends Component {
   };
 
   completePurchase = () => {
-    db.transaction(tx => {
-      tx.executeSql("SELECT * FROM plan WHERE ID = 1", [], (tx, results) => {
-        console.log("UPDATING STATUS", results.rows.item(0));
-        let cc_info = JSON.parse(results.rows.item(0).cc_info);
-        let contact_address = JSON.parse(results.rows.item(0).contact_address);
-        let contact_information = JSON.parse(
-          results.rows.item(0).contact_information
-        );
-
-        fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
-          method: "POST",
-          credentials: "include",
-          body: JSON.stringify({
-            firstName: contact_information.first_name,
-            lastName: contact_information.last_name,
-            phone: contact_information.phone,
-            emailAddress: contact_information.email
-          })
-        })
-          .then(response => {
-            console.log("Response Create Customer", response);
-            if (response.status == 202) {
-              this.setModalVisible(true, 1);
-            } else {
-              console.log("Error Creating Customer");
+    if (this.state.payment == 0) {
+      Alert.alert(
+        "Choose Plan",
+        "Please choose a paymetn option.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              console.log("OK Pressed");
             }
-          })
-          .catch(error => {
-            console.log("Error Creating New Customer", error._bodyText);
-          });
+          }
+        ],
+        { cancelable: false }
+      );
+    } else {
+      this.setState(prevState => {
+        return {
+          ...prevState,
+          activityDisplay: true
+        };
       });
-    });
+
+      db.transaction(tx => {
+        tx.executeSql("SELECT * FROM plan WHERE ID = 1", [], (tx, results) => {
+          console.log("UPDATING STATUS", results.rows.item(0));
+          let cc_info = JSON.parse(results.rows.item(0).cc_info);
+          let bank_info = JSON.parse(results.rows.item(0).bank_info);
+          let contact_information = JSON.parse(
+            results.rows.item(0).contact_information
+          );
+
+          console.log("Creating Customer");
+
+          fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
+            method: "POST",
+            credentials: "include",
+            body: JSON.stringify({
+              firstName: contact_information.first_name,
+              lastName: contact_information.last_name,
+              phone: contact_information.phone,
+              emailAddress: contact_information.email
+            })
+          })
+            .then(response => {
+              console.log("Response Create Customer", response);
+              if (response.status == 200) {
+                // CREATE CARD
+
+                if (bank_info.info == "no") {
+                  console.log("USING CREDIT CARD");
+                  this.setState(prevState => {
+                    return {
+                      ...prevState,
+                      method_data:
+                        "card[number]=" +
+                        cc_info.card_number +
+                        "&card[exp_month]=" +
+                        cc_info.month +
+                        "&card[exp_year]=" +
+                        cc_info.year +
+                        "&card[cvc]=" +
+                        cc_info.ccv
+                    };
+                  });
+                } else {
+                  console.log("USING BANK ACCOUNT");
+                  this.setState(prevState => {
+                    return {
+                      ...prevState,
+                      method_data:
+                        "bank_account[country]=US&bank_account[currency]=usd" +
+                        "&bank_account[account_holder_name]=" +
+                        contact_information.first_name +
+                        " " +
+                        contact_information.last_name +
+                        "&bank_account[account_holder_type]=" +
+                        bank_info.selectedAccount +
+                        "&bank_account[routing_number]=" +
+                        bank_info.routing_number +
+                        "&bank_account[account_number]=" +
+                        bank_info.account_number
+                    };
+                  });
+                }
+
+                console.log("Method Data -> " + this.state.method_data);
+
+                fetch("https://api.stripe.com/v1/tokens", {
+                  body: this.state.method_data,
+                  headers: {
+                    Authorization:
+                      "Bearer " + "sk_test_yQUMVFqMVyDKM6GNWUNs45nw",
+                    "Content-Type": "application/x-www-form-urlencoded"
+                  },
+                  method: "POST"
+                }).then(response => {
+                  console.log(
+                    "CARD TOKEN RESPONSE",
+                    JSON.parse(response._bodyText)
+                  );
+                  let tokens = JSON.parse(response._bodyText);
+
+                  if (tokens.id) {
+                    fetch("https://api.stripe.com/v1/customers", {
+                      body:
+                        "description=Customer for " +
+                        contact_information.email +
+                        "&source=" +
+                        tokens.id,
+                      headers: {
+                        Authorization:
+                          "Bearer " + "sk_test_yQUMVFqMVyDKM6GNWUNs45nw",
+                        "Content-Type": "application/x-www-form-urlencoded"
+                      },
+                      method: "POST"
+                    }).then(customer => {
+                      console.log(
+                        "CUSTOMER CREATION",
+                        JSON.parse(customer._bodyText)
+                      );
+
+                      let customer_data = JSON.parse(customer._bodyText);
+
+                      if (customer_data.id) {
+                        if (this.state.payment == "449") {
+                          console.log("SINGLE PAYMENT");
+                          this.setState(prevState => {
+                            return {
+                              ...prevState,
+                              plan: "singlePayment"
+                            };
+                          });
+                        } else if (this.state.payment == "150") {
+                          console.log("3 MONTHS PAYMENT");
+                          this.setState(prevState => {
+                            return {
+                              ...prevState,
+                              plan: "threePayment"
+                            };
+                          });
+                        } else if (this.state.payment == "45") {
+                          console.log("12 MONTHS PAYMENT");
+                          this.setState(prevState => {
+                            return {
+                              ...prevState,
+                              plan: "twelvePayment"
+                            };
+                          });
+                        }
+
+                        fetch("https://api.stripe.com/v1/subscriptions", {
+                          body:
+                            "items[0][plan]=" +
+                            this.state.plan +
+                            "&customer=" +
+                            customer_data.id,
+                          headers: {
+                            Authorization:
+                              "Bearer " + "sk_test_yQUMVFqMVyDKM6GNWUNs45nw",
+                            "Content-Type": "application/x-www-form-urlencoded"
+                          },
+                          method: "POST"
+                        }).then(response => {
+                          console.log(
+                            "SUBSCRIPTION CREATION",
+                            JSON.parse(response._bodyText)
+                          );
+
+                          let subscription = JSON.parse(response._bodyText);
+
+                          if (subscription.id) {
+                            this.setState(prevState => {
+                              return {
+                                ...prevState,
+                                activityDisplay: false
+                              };
+                            });
+                            setTimeout(() => {
+                              this.setModalVisible(true, 1);
+                            }, 250);
+                          } else {
+                            this.setState(prevState => {
+                              return {
+                                ...prevState,
+                                activityDisplay: false
+                              };
+                            });
+                            setTimeout(() => {
+                              Alert.alert(
+                                "Error",
+                                subscription.error.message,
+                                [
+                                  {
+                                    text: "OK",
+                                    onPress: () => {
+                                      console.log("OK Pressed");
+                                    }
+                                  }
+                                ],
+                                { cancelable: false }
+                              );
+                            }, 250);
+                          }
+                        });
+                      } else {
+                        this.setState(prevState => {
+                          return {
+                            ...prevState,
+                            activityDisplay: false
+                          };
+                        });
+                        setTimeout(() => {
+                          Alert.alert(
+                            "Error",
+                            customer_data.message,
+                            [
+                              {
+                                text: "OK",
+                                onPress: () => {
+                                  console.log("OK Pressed");
+                                }
+                              }
+                            ],
+                            { cancelable: false }
+                          );
+                        }, 250);
+                      }
+                    });
+                  } else {
+                    this.setState(prevState => {
+                      return {
+                        ...prevState,
+                        activityDisplay: false
+                      };
+                    });
+                    setTimeout(() => {
+                      Alert.alert(
+                        "Error",
+                        tokens.error.message,
+                        [
+                          {
+                            text: "OK",
+                            onPress: () => {
+                              console.log("OK Pressed");
+                            }
+                          }
+                        ],
+                        { cancelable: false }
+                      );
+                    }, 250);
+                  }
+                });
+              } else {
+                console.log("Error Creating Customer");
+                this.setState(prevState => {
+                  return {
+                    ...prevState,
+                    activityDisplay: false
+                  };
+                });
+                setTimeout(() => {
+                  Alert.alert(
+                    "Error",
+                    "Error creating customer.",
+                    [
+                      {
+                        text: "OK",
+                        onPress: () => {
+                          console.log("OK Pressed");
+                        }
+                      }
+                    ],
+                    { cancelable: false }
+                  );
+                }, 250);
+              }
+            })
+            .catch(error => {
+              console.log("Error Creating New Customer", error._bodyText);
+            });
+        });
+      });
+    }
   };
 
   render() {
@@ -283,7 +552,7 @@ class PaymentOptionsScreen extends Component {
         <Text style={styles.text3}>out the form themselves. Please</Text>
         <Text style={styles.text3}>choose one of the options below.</Text>
         <View style={[styles.row, styles.selectBox]}>
-        <RNPickerSelect
+          <RNPickerSelect
             placeholder={{
               label: "Select Payment Option...",
               value: null,
@@ -387,6 +656,15 @@ class PaymentOptionsScreen extends Component {
     }
     return (
       <View style={styles.container}>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={this.state.activityDisplay}
+        >
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <ActivityIndicator size="large" color="#F3407B" />
+          </View>
+        </Modal>
         <Modal
           animationType="fade"
           transparent
