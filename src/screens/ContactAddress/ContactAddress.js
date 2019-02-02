@@ -385,7 +385,7 @@ class ContactAddressScreen extends Component {
                 } else {
                   this.goToScreen("BillingInformationScreen");
                 }
-              }, 250);
+              }, 500);
             }
           }
         );

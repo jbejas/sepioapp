@@ -385,7 +385,7 @@ class LoginScreen extends Component {
         </View>
         <View style={styles.container2}>
           <CustomButtonMultiColor
-            title="Already have an account?"
+            title="Don't have an account?"
             secondTitle=" Sign In"
             width="90%"
             bgColor="#FFFFFF"

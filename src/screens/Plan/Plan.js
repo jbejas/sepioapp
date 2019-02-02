@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
   Modal,
   Alert,
-  Linking
+  Linking,
+  Platform
 } from "react-native";
 import { Navigation } from "react-native-navigation";
 import Image from "react-native-remote-svg";
@@ -199,14 +200,30 @@ class PlanScreen extends Component {
 
   sendSMS = number => {
     console.log("Send SMS");
-    Linking.openURL("sms:" + number + "?body=" + this.state.link);
+    if (Platform.OS === "ios") {
+      Linking.openURL("sms:" + number + "&body=" + this.state.link);
+    } else {
+      Linking.openURL("sms:" + number + "?body=" + this.state.link);
+    }
   };
 
   sendEmail = email => {
     console.log("Send Email");
-    Linking.openURL(
-      "mailto:" + email + "?subject=Contact from Sepio&body=" + this.state.link
-    );
+    if (Platform.OS === "ios") {
+      Linking.openURL(
+        "mailto:" +
+          email +
+          "?subject=Contact from Sepio&body=" +
+          this.state.link
+      );
+    } else {
+      Linking.openURL(
+        "mailto:" +
+          email +
+          "?subject=Contact from Sepio&body=" +
+          this.state.link
+      );
+    }
   };
 
   sendLink(type) {
@@ -227,6 +244,7 @@ class PlanScreen extends Component {
         } else {
           this.sendEmail(customer.emailAddress);
         }
+        this.setModalVisible(false);
       })
       .catch(error => {
         console.log("Error retrieveing customer.", error);

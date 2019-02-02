@@ -2,6 +2,7 @@ import React, { Component } from "react";
 AsyncStorage;
 import { StyleSheet, Text, View, AsyncStorage } from "react-native";
 import { Navigation } from "react-native-navigation";
+import SplashScreen from "react-native-splash-screen";
 import Image from "react-native-remote-svg";
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
@@ -13,6 +14,10 @@ class StartScreen extends Component {
   constructor(props) {
     super(props);
     Navigation.events().bindComponent(this);
+  }
+
+  componentDidMount() {
+    SplashScreen.hide();
     setTimeout(() => {
       console.log("Get Login Data");
       this.createDB();

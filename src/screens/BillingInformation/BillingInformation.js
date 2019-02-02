@@ -24,7 +24,8 @@ class BillingInformationScreen extends Component {
   state = {
     menuState: false,
     modalVisible: false,
-    selectedPayment: 0
+    selectedPayment: 0,
+    activityDisplay: false
   };
 
   constructor(props) {

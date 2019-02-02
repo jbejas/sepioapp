@@ -7,21 +7,17 @@ import {
   Modal,
   TouchableOpacity,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  Linking
 } from "react-native";
 import { Navigation } from "react-native-navigation";
 import CustomButton from "../../components/CustomButton/CustomButton";
 import RNPickerSelect from "react-native-picker-select";
 import Image from "react-native-remote-svg";
-import stripe from "tipsi-stripe";
 import party from "../../assets/images/party.svg";
 import menu from "../../assets/images/menu.png";
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
-
-stripe.setOptions({
-  publishableKey: "pk_test_zv0rLIanDWzfVBSco2aQHASv"
-});
 
 const theme = {
   primaryBackgroundColor: "#FFFFFF",
@@ -62,10 +58,6 @@ class PaymentOptionsScreen extends Component {
     super(props);
     Navigation.events().bindComponent(this);
     this.inputRefs = {};
-    stripe.setOptions({
-      publishableKey: "pk_test_zv0rLIanDWzfVBSco2aQHASv",
-      androidPayMode: "test" // Android only
-    });
   }
 
   componentDidMount() {
@@ -496,6 +488,43 @@ class PaymentOptionsScreen extends Component {
     }
   };
 
+  sendSMS = number => {
+    console.log("Send SMS");
+    Linking.openURL("sms:" + number + "?body=" + this.state.link);
+  };
+
+  sendEmail = email => {
+    console.log("Send Email");
+    Linking.openURL(
+      "mailto:" + email + "?subject=Contact from Sepio&body=" + this.state.link
+    );
+  };
+
+  sendLink(type) {
+    this.setModalVisible(false);
+    fetch(
+      "https://sepioguard-test-api.herokuapp.com/v1/customer/" +
+        this.state.customer,
+      {
+        method: "GET",
+        credentials: "include"
+      }
+    )
+      .then(response => {
+        console.log("Response Customer", response);
+        let customer = JSON.parse(response._bodyText);
+        if (type == "sms") {
+          this.sendSMS(customer.phone);
+        } else {
+          this.sendEmail(customer.emailAddress);
+        }
+        this.setModalVisible(true);
+      })
+      .catch(error => {
+        console.log("Error retrieveing customer.", error);
+      });
+  }
+
   render() {
     const purchase = (
       <View style={styles.modalContent}>
@@ -600,7 +629,7 @@ class PaymentOptionsScreen extends Component {
             fontFamily="Avenir"
             fontSize={16}
             borderRadius={5}
-            onPressHandler={() => this.setModalVisible(false)}
+            onPressHandler={() => this.sendLink("sms")}
           />
           <CustomButton
             title="VIA EMAIL"
@@ -619,7 +648,7 @@ class PaymentOptionsScreen extends Component {
             fontFamily="Avenir"
             fontSize={16}
             borderRadius={5}
-            onPressHandler={() => this.setModalVisible(false)}
+            onPressHandler={() => this.sendLink("email")}
           />
         </View>
         <CustomButton

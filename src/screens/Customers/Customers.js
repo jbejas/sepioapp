@@ -7,6 +7,7 @@ import {
   Alert,
   FlatList,
   Linking,
+  Platform,
   Modal,
   ActivityIndicator
 } from "react-native";
@@ -196,7 +197,12 @@ class CustomersScreen extends Component {
 
   sendEmail = email => {
     console.log("Send Email");
-    Linking.openURL("mailto:" + email + "?subject=Contact from Sepio");
+
+    if (Platform.OS === "ios") {
+      Linking.openURL("sms:" + number + "&subject=Contact from Sepio");
+    } else {
+      Linking.openURL("sms:" + number + "?subject=Contact from Sepio");
+    }
   };
 
   render() {
