@@ -115,14 +115,23 @@ class ForgotPasswordScreen extends Component {
           if (response.status == 200) {
             Alert.alert(
               "Password Recovery",
-              "Instructions on how to recover your password has been sent to the entered Email.",
+              "Instructions on how to recover your password has been sent to your Email.",
               [
                 {
                   text: "OK",
                   onPress: () => {
                     console.log("OK Pressed");
-                    this.updateInputState("email", "");
-                    this.emailInput.focus();
+                    //this.updateInputState("email", "");
+                    //this.emailInput.focus();
+                    this.setState(prevState => {
+                      return {
+                        ...prevState,
+                        activityDisplay: false
+                      };
+                    });
+                    setTimeout(() => {
+                      this.goBack();
+                    }, 250);
                   }
                 }
               ],

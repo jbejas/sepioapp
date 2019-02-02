@@ -17,7 +17,10 @@ class StartScreen extends Component {
   }
 
   componentDidMount() {
-    SplashScreen.hide();
+    setTimeout(() => {
+      SplashScreen.hide();
+    }, 1500);
+
     setTimeout(() => {
       console.log("Get Login Data");
       this.createDB();
