@@ -7,7 +7,8 @@ import {
   TouchableWithoutFeedback,
   TouchableOpacity,
   Modal,
-  Alert
+  Alert,
+  Linking
 } from "react-native";
 import { Navigation } from "react-native-navigation";
 import Image from "react-native-remote-svg";
@@ -19,7 +20,6 @@ var db = openDatabase({ name: "sepio.db" });
 // IMAGES
 import singlePlan from "../../assets/images/single-plan.svg";
 import spousePlan from "../../assets/images/spouse-plan.svg";
-import arrow from "../../assets/images/arrow-down.svg";
 import menu from "../../assets/images/menu.png";
 
 class PlanScreen extends Component {
@@ -28,7 +28,8 @@ class PlanScreen extends Component {
     menuState: false,
     currentScreen: false,
     selectedPlan: 0,
-    customer: 0
+    customer: 0,
+    link: "https://sepioguard.com/share?ref=Lorem Ipsum Dolor Sit Amet"
   };
 
   constructor(props) {
@@ -119,6 +120,7 @@ class PlanScreen extends Component {
   }
 
   setCustomer = value => {
+    console.log("Customer -> " + value);
     this.setState(prevState => {
       return {
         ...prevState,
@@ -195,6 +197,42 @@ class PlanScreen extends Component {
     }
   }
 
+  sendSMS = number => {
+    console.log("Send SMS");
+    Linking.openURL("sms:" + number + "?body=" + this.state.link);
+  };
+
+  sendEmail = email => {
+    console.log("Send Email");
+    Linking.openURL(
+      "mailto:" + email + "?subject=Contact from Sepio&body=" + this.state.link
+    );
+  };
+
+  sendLink(type) {
+    this.setModalVisible(false);
+    fetch(
+      "https://sepioguard-test-api.herokuapp.com/v1/customer/" +
+        this.state.customer,
+      {
+        method: "GET",
+        credentials: "include"
+      }
+    )
+      .then(response => {
+        console.log("Response Customer", response);
+        let customer = JSON.parse(response._bodyText);
+        if (type == "sms") {
+          this.sendSMS(customer.phone);
+        } else {
+          this.sendEmail(customer.emailAddress);
+        }
+      })
+      .catch(error => {
+        console.log("Error retrieveing customer.", error);
+      });
+  }
+
   render() {
     return (
       <View style={styles.container}>
@@ -243,8 +281,7 @@ class PlanScreen extends Component {
               <View style={[styles.row, styles.selectBox]}>
                 <TextInput
                   style={styles.select}
-                  onChangeText={text => this.setState({ text })}
-                  placeholder="https://sepioguard.com/share?ref=Lorem Ipsum Dolor Sit Amet"
+                  value={this.state.link}
                   placeholderTextColor="#0F195B"
                 />
               </View>
@@ -266,7 +303,7 @@ class PlanScreen extends Component {
                   fontFamily="Avenir"
                   fontSize={16}
                   borderRadius={5}
-                  onPressHandler={() => this.setModalVisible(false)}
+                  onPressHandler={() => this.sendLink("sms")}
                 />
                 <CustomButton
                   title="VIA EMAIL"
@@ -285,7 +322,7 @@ class PlanScreen extends Component {
                   fontFamily="Avenir"
                   fontSize={16}
                   borderRadius={5}
-                  onPressHandler={() => this.setModalVisible(false)}
+                  onPressHandler={() => this.sendLink("email")}
                 />
               </View>
               <CustomButton

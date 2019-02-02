@@ -578,8 +578,7 @@ class PaymentOptionsScreen extends Component {
         <View style={[styles.row, styles.selectBox]}>
           <TextInput
             style={styles.select}
-            onChangeText={text => this.setState({ text })}
-            placeholder="https://sepioguard.com/share?ref=Lorem Ipsum Dolor Sit Amet"
+            value="https://sepioguard.com/share?ref=Lorem Ipsum Dolor Sit Amet"
             placeholderTextColor="#0F195B"
           />
         </View>

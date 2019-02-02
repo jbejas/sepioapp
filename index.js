@@ -31,6 +31,8 @@ import MenuScreen from "./src/screens/Menu/Menu";
 import ForgotPasswordScreen from "./src/screens/ForgotPassword/ForgotPassword";
 import SettingsScreen from "./src/screens/Settings/Settings";
 import CustomersScreen from "./src/screens/Customers/Customers";
+import PartnerInformationScreen from "./src/screens/PartnerInformation/PartnerInformation";
+import PartnerAddressScreen from "./src/screens/PartnerAddress/PartnerAddress";
 
 console.disableYellowBox = true;
 
@@ -80,6 +82,16 @@ Navigation.registerComponent("SettingsScreen", () => SettingsScreen);
 
 Navigation.registerComponent("CustomersScreen", () => CustomersScreen);
 
+Navigation.registerComponent(
+  "PartnerInformationScreen",
+  () => PartnerInformationScreen
+);
+
+Navigation.registerComponent(
+  "PartnerAddressScreen",
+  () => PartnerAddressScreen
+);
+
 Navigation.events().registerAppLaunchedListener(() => {
   Navigation.setDefaultOptions({
     statusBar: {
@@ -123,8 +135,8 @@ Navigation.events().registerAppLaunchedListener(() => {
               {
                 component: {
                   id: "AppStack",
-                  //name: "StartScreen"
-                  name: "PaymentOptionsScreen"
+                  name: "StartScreen"
+                  //name: "PaymentOptionsScreen"
                 }
               }
             ]

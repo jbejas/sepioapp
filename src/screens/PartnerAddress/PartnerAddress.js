@@ -20,13 +20,12 @@ var db = openDatabase({ name: "sepio.db" });
 // IMAGES
 import menu from "../../assets/images/menu.png";
 
-class ContactAddressScreen extends Component {
+class PartnerAddressScreen extends Component {
   state = {
     menuState: false,
     address2: "",
     activityDisplay: false,
     selected_state: null,
-    selected_plan: 0,
     controls: {
       address: {
         value: "",
@@ -268,24 +267,6 @@ class ContactAddressScreen extends Component {
     this.inputRefs = {};
   }
 
-  componentDidMount() {
-    db.transaction(tx => {
-      tx.executeSql(
-        "SELECT selected_plan FROM plan WHERE ID = 1",
-        [],
-        (tx, results) => {
-          console.log("Selected Plan -> " + results.rows.item(0).selected_plan);
-          this.setState(prevState => {
-            return {
-              ...prevState,
-              selected_plan: results.rows.item(0).selected_plan
-            };
-          });
-        }
-      );
-    });
-  }
-
   saveContactAddress = () => {
     console.log("Address -> " + this.state.controls.address.value);
     console.log("Address 2 -> " + this.state.address2);
@@ -355,22 +336,22 @@ class ContactAddressScreen extends Component {
         );
       }, 200);
     } else {
-      let contact_address = {
+      let partner_address = {
         address: this.state.controls.address.value,
         address2: this.state.address2,
         city: this.state.controls.city.value,
         zip: this.state.controls.zip.value,
         selected_state: this.state.selected_state
       };
-      contact_address = JSON.stringify(contact_address);
+      partner_address = JSON.stringify(partner_address);
       db.transaction(tx => {
         tx.executeSql(
-          "UPDATE plan SET contact_address = '" +
-            contact_address +
+          "UPDATE plan SET partner_address = '" +
+            partner_address +
             "' WHERE ID = 1",
           [],
           (tx, results) => {
-            console.log("UPDATING CONTACT ADDRESS", results);
+            console.log("UPDATING PARTNER ADDRESS", results);
             if (results.rowsAffected == 1) {
               this.setState(prevState => {
                 return {
@@ -378,14 +359,7 @@ class ContactAddressScreen extends Component {
                   activityDisplay: false
                 };
               });
-              setTimeout(() => {
-                console.log("Selected Plan -> " + this.state.selected_plan);
-                if (this.state.selected_plan == 2) {
-                  this.goToScreen("PartnerInformationScreen");
-                } else {
-                  this.goToScreen("BillingInformationScreen");
-                }
-              }, 250);
+              this.goToScreen("BillingInformationScreen");
             }
           }
         );
@@ -504,7 +478,7 @@ class ContactAddressScreen extends Component {
           </TouchableOpacity>
         </View>
         <View style={styles.header}>
-          <Text style={styles.text1}>Contact Address</Text>
+          <Text style={styles.text1}>Family Member / Partner Address</Text>
         </View>
         <View style={styles.row}>
           <TextInput
@@ -759,7 +733,7 @@ const styles = StyleSheet.create({
   },
   text1: {
     color: "#01396F",
-    fontSize: 24,
+    fontSize: 19,
     fontFamily: "Avenir",
     fontWeight: "bold",
     marginTop: 10,
@@ -799,4 +773,4 @@ const pickerSelectStyles = StyleSheet.create({
   }
 });
 
-export default ContactAddressScreen;
+export default PartnerAddressScreen;
