@@ -1,16 +1,27 @@
 import React, { Component } from "react";
 import {
   StyleSheet,
-  Text,
   View,
   TextInput,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Modal
+  Modal,
+  Image,
+  Platform
 } from "react-native";
+import {
+  Container,
+  Header,
+  Title,
+  Content,
+  Button,
+  Left,
+  Right,
+  Body,
+  Text
+} from "native-base";
 import { Navigation } from "react-native-navigation";
-import Image from "react-native-remote-svg";
+
 import RNPickerSelect from "react-native-picker-select";
 import validate from "../../utility/validation";
 import CustomButton from "../../components/CustomButton/CustomButton";
@@ -18,7 +29,7 @@ import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
 
 // IMAGES
-import scan from "../../assets/images/scan.svg";
+import scan from "../../assets/images/scan.png";
 import menu from "../../assets/images/menu.png";
 
 class CardInformationScreen extends Component {
@@ -169,10 +180,15 @@ class CardInformationScreen extends Component {
   }
 
   goToScreen = screenName => {
-    console.log("Screen Name -> " + screenName);
     Navigation.push(this.props.componentId, {
       component: {
-        name: screenName
+        name: screenName,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0
+          }
+        }
       }
     });
   };
@@ -353,28 +369,9 @@ class CardInformationScreen extends Component {
   };
 
   render() {
-    return (
-      <View style={styles.container}>
-        <Modal
-          animationType="fade"
-          transparent={true}
-          visible={this.state.activityDisplay}
-        >
-          <View style={{ flex: 1, justifyContent: "center" }}>
-            <ActivityIndicator size="large" color="#F3407B" />
-          </View>
-        </Modal>
-        <View style={styles.topHeader}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => this.openSideMenu()}
-          >
-            <Image source={menu} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.header}>
-          <Text style={styles.text1}>Credit Card Information</Text>
-        </View>
+    let scanCard;
+    if (Platform.OS == "ios") {
+      scanCard = (
         <View style={styles.scan}>
           <Text style={styles.scanText}>Scan Card</Text>
           <TouchableOpacity
@@ -384,138 +381,183 @@ class CardInformationScreen extends Component {
             <Image source={scan} />
           </TouchableOpacity>
         </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={value => this.updateInputState("card_name", value)}
-            placeholder="Name on Card"
-            placeholderTextColor="#0F195B"
-            keyboardType="default"
-          />
+      );
+    } else {
+      scanCard = (
+        <View style={styles.scan}>
+          <Text style={styles.scanText}>{"\n"}</Text>
         </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={value => this.updateInputState("card_number", value)}
-            value={this.state.controls.card_number.value}
-            placeholder="Card Number"
-            placeholderTextColor="#0F195B"
-            keyboardType="number-pad"
-          />
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={value => this.updateInputState("ccv", value)}
-            value={this.state.controls.ccv.value}
-            placeholder="Security Code"
-            placeholderTextColor="#0F195B"
-            keyboardType="number-pad"
-          />
-        </View>
-        <View style={styles.dob}>
-          <Text style={styles.dobText}>Expiration Date</Text>
-        </View>
-        <View style={styles.row}>
-          <View style={styles.containerColStart}>
-            <RNPickerSelect
-              placeholder={{
-                label: "Select Month...",
-                value: null,
-                color: "#01396F"
-              }}
-              items={this.state.months}
-              hideIcon={true}
-              onValueChange={value => {
-                this.setMonth(value);
-              }}
-              value={this.state.selectedMonth}
-              onUpArrow={() => {
-                this.inputRefs.name.focus();
-              }}
-              onDownArrow={() => {
-                this.inputRefs.picker2.togglePicker();
-              }}
-              style={{ ...pickerSelectStyles }}
-              ref={el => {
-                this.inputRefs.picker = el;
-              }}
+      );
+    }
+
+    return (
+      <Container>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={this.state.activityDisplay}
+        >
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <ActivityIndicator size="large" color="#F3407B" />
+          </View>
+        </Modal>
+        <Header
+          style={{
+            backgroundColor: "white",
+            borderBottomWidth: 0,
+            elevation: 0
+          }}
+        >
+          <Left>
+            <Button transparent onPress={() => this.openSideMenu()}>
+              <Image source={menu} />
+            </Button>
+          </Left>
+          <Body>
+            <Title style={{ color: "white" }}>Header</Title>
+          </Body>
+          <Right />
+        </Header>
+        <Content>
+          <View style={styles.header}>
+            <Text style={styles.text1}>Credit Card Information</Text>
+          </View>
+          {scanCard}
+          <View style={styles.row}>
+            <TextInput
+              style={styles.emailInput}
+              onChangeText={value => this.updateInputState("card_name", value)}
+              placeholder="Name on Card"
+              placeholderTextColor="#0F195B"
+              keyboardType="default"
             />
           </View>
-          <View style={styles.containerColEnd}>
-            <RNPickerSelect
-              placeholder={{
-                label: "Select Year...",
-                value: null,
-                color: "#01396F"
-              }}
-              items={this.state.years}
-              hideIcon={true}
-              onValueChange={value => {
-                this.setYear(value);
-              }}
-              value={this.state.selectedYear}
-              onUpArrow={() => {
-                this.inputRefs.name.focus();
-              }}
-              onDownArrow={() => {
-                this.inputRefs.picker2.togglePicker();
-              }}
-              style={{ ...pickerSelectStyles }}
-              ref={el => {
-                this.inputRefs.picker = el;
-              }}
+          <View style={styles.row}>
+            <TextInput
+              style={styles.emailInput}
+              onChangeText={value =>
+                this.updateInputState("card_number", value)
+              }
+              value={this.state.controls.card_number.value}
+              placeholder="Card Number"
+              placeholderTextColor="#0F195B"
+              keyboardType="number-pad"
             />
           </View>
-        </View>
-        <View style={styles.nextBt}>
-          <CustomButton
-            title="VIEW PAYMENT OPTIONS"
-            width="95%"
-            bgColor="#F3407B"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#FFFFFF"
-            fontWeight="bold"
-            borderWith={1}
-            borderColor="#F3407B"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            marginTop={15}
-            onPressHandler={() => this.setCCInfo()}
-          />
-        </View>
-        <View style={styles.back}>
-          <Text style={styles.steps}>3 of 4</Text>
-          <CustomButton
-            title="BACK"
-            width="90%"
-            bgColor="#FFFFFF"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#01396F"
-            fontWeight="bold"
-            borderWidth={1}
-            borderColor="#01396F"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            onPressHandler={() => this.goBack()}
-          />
-        </View>
-        <View style={styles.powered}>
-          <Text style={styles.textPlan}>
-            Powered by <Text style={styles.pink}>Sepio Guard</Text>
-          </Text>
-        </View>
-      </View>
+          <View style={styles.row}>
+            <TextInput
+              style={styles.emailInput}
+              onChangeText={value => this.updateInputState("ccv", value)}
+              value={this.state.controls.ccv.value}
+              placeholder="Security Code"
+              placeholderTextColor="#0F195B"
+              keyboardType="number-pad"
+            />
+          </View>
+          <View style={styles.dob}>
+            <Text style={styles.dobText}>Expiration Date</Text>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.containerColStart}>
+              <RNPickerSelect
+                placeholder={{
+                  label: "Select Month...",
+                  value: null,
+                  color: "#01396F"
+                }}
+                items={this.state.months}
+                hideIcon={true}
+                onValueChange={value => {
+                  this.setMonth(value);
+                }}
+                value={this.state.selectedMonth}
+                onUpArrow={() => {
+                  this.inputRefs.name.focus();
+                }}
+                onDownArrow={() => {
+                  this.inputRefs.picker2.togglePicker();
+                }}
+                style={{ ...pickerSelectStyles }}
+                ref={el => {
+                  this.inputRefs.picker = el;
+                }}
+              />
+            </View>
+            <View style={styles.containerColEnd}>
+              <RNPickerSelect
+                placeholder={{
+                  label: "Select Year...",
+                  value: null,
+                  color: "#01396F"
+                }}
+                items={this.state.years}
+                hideIcon={true}
+                onValueChange={value => {
+                  this.setYear(value);
+                }}
+                value={this.state.selectedYear}
+                onUpArrow={() => {
+                  this.inputRefs.name.focus();
+                }}
+                onDownArrow={() => {
+                  this.inputRefs.picker2.togglePicker();
+                }}
+                style={{ ...pickerSelectStyles }}
+                ref={el => {
+                  this.inputRefs.picker = el;
+                }}
+              />
+            </View>
+          </View>
+          <View style={styles.nextBt}>
+            <CustomButton
+              title="VIEW PAYMENT OPTIONS"
+              width="95%"
+              bgColor="#F3407B"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#FFFFFF"
+              fontWeight="bold"
+              borderWith={1}
+              borderColor="#F3407B"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              marginTop={15}
+              onPressHandler={() => this.setCCInfo()}
+            />
+          </View>
+          <View style={styles.back}>
+            <Text style={styles.steps}>3 of 4</Text>
+            <CustomButton
+              title="BACK"
+              width="90%"
+              bgColor="#FFFFFF"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#01396F"
+              fontWeight="bold"
+              borderWidth={1}
+              borderColor="#01396F"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              onPressHandler={() => this.goBack()}
+            />
+          </View>
+          <View style={styles.powered}>
+            <Text style={styles.textPlan}>
+              Powered by <Text style={styles.pink}>Sepio Guard</Text>
+            </Text>
+          </View>
+        </Content>
+      </Container>
     );
   }
 }
@@ -550,7 +592,8 @@ const styles = StyleSheet.create({
     //backgroundColor: "green",
     justifyContent: "center",
     alignItems: "center",
-    flexDirection: "row"
+    flexDirection: "row",
+    marginLeft: "2.5%"
   },
   containerCol: {
     flex: 1,
@@ -615,7 +658,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "flex-start",
     marginTop: 10,
-    width: "94%"
+    width: "94%",
+    marginLeft: "3%"
   },
   scanText: {
     color: "#01396F",
@@ -626,7 +670,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    width: "94%"
+    width: "94%",
+    marginLeft: "3%"
   },
   cardImg: {
     width: 40,
@@ -698,9 +743,10 @@ const pickerSelectStyles = StyleSheet.create({
   },
   inputAndroid: {
     fontSize: 16,
-    paddingTop: 10,
+    paddingTop: 5,
     paddingHorizontal: 10,
-    paddingBottom: 10,
+    paddingBottom: 5,
+    height: 40,
     borderWidth: 0,
     borderColor: "gray",
     borderRadius: 4,

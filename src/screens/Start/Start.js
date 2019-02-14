@@ -1,13 +1,11 @@
 import React, { Component } from "react";
-AsyncStorage;
-import { StyleSheet, Text, View, AsyncStorage } from "react-native";
+import { StyleSheet, Text, View, Image } from "react-native";
 import { Navigation } from "react-native-navigation";
 import SplashScreen from "react-native-splash-screen";
-import Image from "react-native-remote-svg";
+
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
 
-import logo from "../../assets/images/logo.svg";
 import CustomButton from "../../components/CustomButton/CustomButton";
 
 class StartScreen extends Component {
@@ -137,7 +135,13 @@ class StartScreen extends Component {
   goToScreen = screenName => {
     Navigation.push(this.props.componentId, {
       component: {
-        name: screenName
+        name: screenName,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0
+          }
+        }
       }
     });
   };
@@ -146,7 +150,10 @@ class StartScreen extends Component {
     return (
       <View style={styles.container}>
         <View style={styles.container1}>
-          <Image source={logo} />
+          <Image
+            style={{ width: 130, height: 130, borderRadius: 65 }}
+            source={require("../../assets/images/logo.png")}
+          />
         </View>
         <View style={styles.container2}>
           <Text style={styles.text1}>Welcome to</Text>

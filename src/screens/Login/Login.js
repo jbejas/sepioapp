@@ -6,17 +6,15 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-  Modal
+  Modal,
+  Image
 } from "react-native";
 import { Navigation } from "react-native-navigation";
-import Image from "react-native-remote-svg";
-//import { connect } from 'react-redux';
-//import { addPlace } from '../../store/actions/index';
 import validate from "../../utility/validation";
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
 
-import logo from "../../assets/images/logo.svg";
+import logo from "../../assets/images/logo.png";
 import CustomButton from "../../components/CustomButton/CustomButton";
 import CustomButtonMultiColor from "../../components/CustomButtonMultiColor/CustomButtonMultiColor";
 
@@ -44,34 +42,7 @@ class LoginScreen extends Component {
   constructor(props) {
     super(props);
     Navigation.events().bindComponent(this);
-    /*Navigation.mergeOptions(this.props.componentId, {
-      topBar: {
-        visible: true,
-        hideOnScroll: false,
-        background: {
-          color: "#FFFFFF"
-        },
-        noBorder: true,
-        backButton: {
-          color: "#FFF"
-        }
-      }
-    });*/
   }
-
-  updateInputState = (key, value) => {
-    this.setState(prevState => {
-      return {
-        controls: {
-          ...prevState.controls,
-          [key]: {
-            ...prevState.controls[key],
-            value: value
-          }
-        }
-      };
-    });
-  };
 
   storeLogin = async data => {
     let uid = JSON.parse(data._bodyText);
@@ -149,6 +120,20 @@ class LoginScreen extends Component {
       });
   };
 
+  updateInputState = (key, value) => {
+    this.setState(prevState => {
+      return {
+        controls: {
+          ...prevState.controls,
+          [key]: {
+            ...prevState.controls[key],
+            value: value
+          }
+        }
+      };
+    });
+  };
+
   login = () => {
     console.log("Email -> " + this.state.controls.email.value);
     console.log("Password -> " + this.state.controls.password.value);
@@ -222,6 +207,7 @@ class LoginScreen extends Component {
       fetch("https://sepioguard-test-api.herokuapp.com/v1/auth/login", {
         method: "POST",
         credentials: "include",
+        mode: "cors",
         body: JSON.stringify({
           emailAddress: this.state.controls.email.value,
           password: this.state.controls.password.value
@@ -259,7 +245,7 @@ class LoginScreen extends Component {
           }
         })
         .catch(error => {
-          console.log("Error Login", error._bodyText);
+          console.log("Error Login", error);
           this.setState(prevState => {
             return {
               ...prevState,
@@ -291,7 +277,13 @@ class LoginScreen extends Component {
   goToScreen = screenName => {
     Navigation.push(this.props.componentId, {
       component: {
-        name: screenName
+        name: screenName,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0
+          }
+        }
       }
     });
   };

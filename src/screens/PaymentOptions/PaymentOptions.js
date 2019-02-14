@@ -1,20 +1,31 @@
 import React, { Component } from "react";
 import {
   StyleSheet,
-  Text,
   View,
   TextInput,
   Modal,
-  TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Linking
+  Linking,
+  Image
 } from "react-native";
+import {
+  Container,
+  Header,
+  Title,
+  Content,
+  Button,
+  Left,
+  Right,
+  Body,
+  Text
+} from "native-base";
+import SplashScreen from "react-native-splash-screen";
 import { Navigation } from "react-native-navigation";
 import CustomButton from "../../components/CustomButton/CustomButton";
 import RNPickerSelect from "react-native-picker-select";
-import Image from "react-native-remote-svg";
-import party from "../../assets/images/party.svg";
+
+import party from "../../assets/images/party.png";
 import menu from "../../assets/images/menu.png";
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
@@ -37,21 +48,7 @@ class PaymentOptionsScreen extends Component {
     payment: 0,
     customer: 0,
     plan: 0,
-    method_data: 0,
-    items: [
-      {
-        value: "449",
-        label: "Single pay - $449"
-      },
-      {
-        value: "150",
-        label: "Three months - $150"
-      },
-      {
-        value: "45",
-        label: "12 months - $45"
-      }
-    ]
+    method_data: 0
   };
 
   constructor(props) {
@@ -61,56 +58,64 @@ class PaymentOptionsScreen extends Component {
   }
 
   componentDidMount() {
+    SplashScreen.hide();
     db.transaction(tx => {
-      tx.executeSql("SELECT * FROM login WHERE ID = 1", [], (tx, results) => {
-        console.log("Results", results.rows.item(0));
-        if (results.rows.item(0).uid) {
-          fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
-            method: "GET",
-            credentials: "include"
-          })
-            .then(response => {
-              console.log("Response Customers", response);
-              let c = JSON.parse(response._bodyText);
-              let customers = [];
+      tx.executeSql(
+        "SELECT * FROM login WHERE ID = 1",
+        [],
+        (tx, results) => {
+          console.log("Results", results.rows.item(0));
+          if (results.rows.item(0).uid) {
+            fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
+              method: "GET",
+              credentials: "include"
+            })
+              .then(response => {
+                console.log("Response Customers", response);
+                let c = JSON.parse(response._bodyText);
+                let customers = [];
 
-              for (var i = 0; i < c.length; i++) {
-                var date = new Date(parseInt(c[i]["createdAt"]));
-                var month = date.getMonth() + 1;
-                if (month < 10) {
-                  month = "0" + month;
-                }
-                var day = date.getDay();
-                if (day < 10) {
-                  day = "0" + day;
-                }
-                var year = date.getFullYear();
-                var formattedTime = month + "/" + day + "/" + year;
+                for (var i = 0; i < c.length; i++) {
+                  var date = new Date(parseInt(c[i]["createdAt"]));
+                  var month = date.getMonth() + 1;
+                  if (month < 10) {
+                    month = "0" + month;
+                  }
+                  var day = date.getDay();
+                  if (day < 10) {
+                    day = "0" + day;
+                  }
+                  var year = date.getFullYear();
+                  var formattedTime = month + "/" + day + "/" + year;
 
-                if (c[i].vendor == results.rows.item(0).employer) {
-                  customers.push({
-                    value: c[i]["id"],
-                    label: c[i]["firstName"] + " " + c[i]["lastName"]
+                  if (c[i].vendor == results.rows.item(0).employer) {
+                    customers.push({
+                      value: c[i]["id"],
+                      label: c[i]["firstName"] + " " + c[i]["lastName"]
+                    });
+                  }
+                }
+
+                if (customers.length == 0) {
+                  console.log("No Customers");
+                } else {
+                  this.setState(prevState => {
+                    return {
+                      ...prevState,
+                      customers: customers
+                    };
                   });
                 }
-              }
-
-              if (customers.length == 0) {
-                console.log("No Customers");
-              } else {
-                this.setState(prevState => {
-                  return {
-                    ...prevState,
-                    customers: customers
-                  };
-                });
-              }
-            })
-            .catch(error => {
-              console.log("Error retrieveing customers.");
-            });
+              })
+              .catch(error => {
+                console.log("Error retrieveing customers.");
+              });
+          }
+        },
+        err => {
+          console.log("Error checking login existence", err);
         }
-      });
+      );
     });
   }
 
@@ -124,14 +129,40 @@ class PaymentOptionsScreen extends Component {
   };
 
   setModalVisible(visible, content) {
-    this.setState({ setContent: content, modalVisible: visible });
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        setContent: content,
+        modalVisible: visible
+      };
+    });
+
+    if (content == 2) {
+      setTimeout(() => {
+        this.setState(prevState => {
+          return {
+            ...prevState,
+            modalVisible: true
+          };
+        });
+      }, 500);
+    }
+
+    if (content == 3) {
+      this.goToScreen("PlanScreen");
+    }
   }
 
   goToScreen = screenName => {
     Navigation.push(this.props.componentId, {
       component: {
         name: screenName,
-        menuState: false
+        options: {
+          topBar: {
+            visible: false,
+            height: 0
+          }
+        }
       }
     });
   };
@@ -567,7 +598,7 @@ class PaymentOptionsScreen extends Component {
           fontFamily="Avenir"
           fontSize={16}
           borderRadius={5}
-          onPressHandler={() => this.setModalVisible(false)}
+          onPressHandler={() => this.setModalVisible(false, 3)}
         />
       </View>
     );
@@ -580,10 +611,12 @@ class PaymentOptionsScreen extends Component {
         </Text>
         <Text style={styles.text3}>out the form themselves. Please</Text>
         <Text style={styles.text3}>choose one of the options below.</Text>
-        <View style={[styles.row, styles.selectBox]}>
+        <View
+          style={{ flex: 1, width: "95%", marginLeft: "2.5%", marginTop: 40 }}
+        >
           <RNPickerSelect
             placeholder={{
-              label: "Select Payment Option...",
+              label: "Select Customer...",
               value: null,
               color: "#01396F"
             }}
@@ -596,17 +629,32 @@ class PaymentOptionsScreen extends Component {
               this.inputRefs.name.focus();
             }}
             onDownArrow={() => {
-              this.inputRefs.picker2.togglePicker();
+              this.inputRefs.picker3.togglePicker();
             }}
             style={{ ...pickerSelectStyles }}
             ref={el => {
-              this.inputRefs.picker = el;
+              this.inputRefs.picker3 = el;
             }}
           />
         </View>
-        <View style={[styles.row, styles.selectBox]}>
+        <View
+          style={{
+            flex: 1,
+            borderRadius: 5,
+            width: "90%",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexDirection: "row",
+            marginTop: 10,
+            marginBottom: 0
+          }}
+        >
           <TextInput
-            style={styles.select}
+            style={{
+              marginHorizontal: 10,
+              height: 45,
+              backgroundColor: "#efefef"
+            }}
             value="https://sepioguard.com/share?ref=Lorem Ipsum Dolor Sit Amet"
             placeholderTextColor="#0F195B"
           />
@@ -668,22 +716,22 @@ class PaymentOptionsScreen extends Component {
           fontFamily="Avenir"
           fontSize={16}
           borderRadius={5}
-          onPressHandler={() => this.setModalVisible(false)}
+          onPressHandler={() => this.setModalVisible(false, 3)}
         />
       </View>
     );
 
     let modalContent;
-    console.log("Set Content -> " + this.props.setContent);
+    console.log("Set Content -> " + this.state.setContent);
     if (this.state.setContent == 1) {
       console.log("Show Purchase");
       modalContent = purchase;
-    } else {
+    } else if (this.state.setContent == 2) {
       console.log("Show Referral");
       modalContent = referral;
     }
     return (
-      <View style={styles.container}>
+      <Container>
         <Modal
           animationType="fade"
           transparent={true}
@@ -704,93 +752,120 @@ class PaymentOptionsScreen extends Component {
         >
           <View style={styles.modalContainer}>{modalContent}</View>
         </Modal>
-        <View style={styles.topHeader}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => this.openSideMenu()}
+        <Header
+          style={{
+            backgroundColor: "white",
+            borderBottomWidth: 0,
+            elevation: 0
+          }}
+        >
+          <Left>
+            <Button transparent onPress={() => this.openSideMenu()}>
+              <Image source={menu} />
+            </Button>
+          </Left>
+          <Body>
+            <Title style={{ color: "white" }}>Header</Title>
+          </Body>
+          <Right />
+        </Header>
+        <Content>
+          <View style={styles.header}>
+            <Text style={styles.text1}>Payment Options</Text>
+          </View>
+          <View
+            style={{ flex: 1, width: "95%", marginLeft: "2.5%", marginTop: 20 }}
           >
-            <Image source={menu} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.header}>
-          <Text style={styles.text1}>Payment Options</Text>
-        </View>
-        <View style={[styles.row, styles.selectBox]}>
-          <RNPickerSelect
-            placeholder={{
-              label: "Select Payment Option...",
-              value: null,
-              color: "#01396F"
-            }}
-            items={this.state.items}
-            hideIcon={true}
-            onValueChange={value => {
-              this.setPaymentOption(value);
-            }}
-            onUpArrow={() => {
-              this.inputRefs.name.focus();
-            }}
-            onDownArrow={() => {
-              this.inputRefs.picker2.togglePicker();
-            }}
-            style={{ ...pickerSelectStyles }}
-            ref={el => {
-              this.inputRefs.picker = el;
-            }}
-          />
-        </View>
-        <View style={styles.row1}>
-          <Text style={styles.text2}>Total Due Today:</Text>
-          <Text style={styles.text2}>${this.state.payment}</Text>
-        </View>
-        <View style={styles.nextBt}>
-          <CustomButton
-            title="COMPLETE PURCHASE"
-            width="95%"
-            bgColor="#F3407B"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#FFFFFF"
-            fontWeight="bold"
-            borderWith={1}
-            borderColor="#F3407B"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            marginTop={15}
-            onPressHandler={() => this.completePurchase()}
-          />
-        </View>
-        <View style={styles.back}>
-          <Text style={styles.steps}>4 of 4</Text>
-          <CustomButton
-            title="BACK"
-            width="90%"
-            bgColor="#FFFFFF"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#01396F"
-            fontWeight="bold"
-            borderWidth={1}
-            borderColor="#01396F"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            onPressHandler={() => this.goBack()}
-          />
-        </View>
-        <View style={styles.powered}>
-          <Text style={styles.textPlan}>
-            Powered by <Text style={styles.pink}>Sepio Guard</Text>
-          </Text>
-        </View>
-      </View>
+            <RNPickerSelect
+              placeholder={{
+                label: "Select Payment Option...",
+                value: null,
+                color: "#01396F"
+              }}
+              items={[
+                {
+                  value: "449",
+                  label: "Single pay - $449"
+                },
+                {
+                  value: "150",
+                  label: "Three months - $150"
+                },
+                {
+                  value: "45",
+                  label: "12 months - $45"
+                }
+              ]}
+              hideIcon={true}
+              onValueChange={value => {
+                this.setPaymentOption(value);
+              }}
+              onUpArrow={() => {
+                this.inputRefs.name.focus();
+              }}
+              onDownArrow={() => {
+                this.inputRefs.picker2.togglePicker();
+              }}
+              style={{ ...pickerSelectStyles }}
+              value={this.state.favColor}
+              ref={el => {
+                this.inputRefs.picker = el;
+              }}
+            />
+          </View>
+          <View style={styles.row1}>
+            <Text style={styles.text2}>Total Due Today:</Text>
+            <Text style={styles.text2}>${this.state.payment}</Text>
+          </View>
+          <View style={styles.nextBt}>
+            <CustomButton
+              title="COMPLETE PURCHASE"
+              width="95%"
+              bgColor="#F3407B"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#FFFFFF"
+              fontWeight="bold"
+              borderWith={1}
+              borderColor="#F3407B"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              marginTop={15}
+              onPressHandler={() => this.completePurchase()}
+            />
+          </View>
+          <View style={styles.back}>
+            <Text style={styles.steps}>4 of 4</Text>
+            <CustomButton
+              title="BACK"
+              width="90%"
+              bgColor="#FFFFFF"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#01396F"
+              fontWeight="bold"
+              borderWidth={1}
+              borderColor="#01396F"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              onPressHandler={() => this.goBack()}
+            />
+          </View>
+          <View style={styles.powered}>
+            <Text style={styles.textPlan}>
+              Powered by <Text style={styles.pink}>Sepio Guard</Text>
+            </Text>
+          </View>
+        </Content>
+      </Container>
     );
   }
 }
@@ -855,8 +930,9 @@ const styles = StyleSheet.create({
     marginLeft: 15
   },
   selectBox: {
-    backgroundColor: "#efefef",
-    borderRadius: 5
+    //backgroundColor: "#efefef",
+    //borderRadius: 5,
+    marginLeft: "10%"
   },
   arrow: {
     marginRight: 13,
@@ -931,7 +1007,7 @@ const styles = StyleSheet.create({
   party: {
     marginTop: 20,
     marginBottom: 20,
-    width: 150,
+    width: 120,
     height: 147
   },
   buttonsContainer: {
@@ -964,18 +1040,21 @@ const pickerSelectStyles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: "#efefef",
     color: "#01396F",
-    textAlign: "center"
+    textAlign: "center",
+    width: "100%"
   },
   inputAndroid: {
     fontSize: 16,
-    paddingTop: 10,
+    paddingTop: 5,
     paddingHorizontal: 10,
-    paddingBottom: 10,
+    paddingBottom: 5,
+    height: 40,
     borderWidth: 0,
     borderColor: "gray",
     borderRadius: 4,
     backgroundColor: "#efefef",
-    color: "#01396F"
+    color: "#01396F",
+    width: "100%"
   }
 });
 

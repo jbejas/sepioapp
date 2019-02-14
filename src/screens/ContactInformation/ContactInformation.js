@@ -1,16 +1,25 @@
 import React, { Component } from "react";
 import {
   StyleSheet,
-  Text,
   View,
   TextInput,
-  TouchableOpacity,
   Modal,
   ActivityIndicator,
-  Alert
+  Alert,
+  Image
 } from "react-native";
+import {
+  Container,
+  Header,
+  Title,
+  Content,
+  Button,
+  Left,
+  Right,
+  Body,
+  Text
+} from "native-base";
 import { Navigation } from "react-native-navigation";
-import Image from "react-native-remote-svg";
 import CustomButton from "../../components/CustomButton/CustomButton";
 import DatePicker from "react-native-datepicker";
 import validate from "../../utility/validation";
@@ -112,7 +121,13 @@ class ContactInformationScreen extends Component {
   goToScreen = screenName => {
     Navigation.push(this.props.componentId, {
       component: {
-        name: screenName
+        name: screenName,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0
+          }
+        }
       }
     });
   };
@@ -290,7 +305,7 @@ class ContactInformationScreen extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
+      <Container>
         <Modal
           animationType="fade"
           transparent={true}
@@ -300,177 +315,160 @@ class ContactInformationScreen extends Component {
             <ActivityIndicator size="large" color="#F3407B" />
           </View>
         </Modal>
-        <View style={styles.topHeader}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => this.openSideMenu()}
-          >
-            <Image source={menu} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.header}>
-          <Text style={styles.text1}>Contact Information</Text>
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={email => this.updateInputState("email", email)}
-            placeholder="Email Address"
-            placeholderTextColor="#0F195B"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-        </View>
-        <View style={styles.row}>
-          <View style={styles.containerColStart}>
+        <Header
+          style={{
+            backgroundColor: "white",
+            borderBottomWidth: 0,
+            elevation: 0
+          }}
+        >
+          <Left>
+            <Button transparent onPress={() => this.openSideMenu()}>
+              <Image source={menu} />
+            </Button>
+          </Left>
+          <Body>
+            <Title style={{ color: "white" }}>Header</Title>
+          </Body>
+          <Right />
+        </Header>
+        <Content>
+          <View style={styles.header}>
+            <Text style={styles.text1}>Contact Information</Text>
+          </View>
+          <View style={styles.row}>
             <TextInput
-              style={styles.firstnameInput}
-              onChangeText={first_name =>
-                this.updateInputState("first_name", first_name)
-              }
-              placeholder="First Name"
+              style={styles.emailInput}
+              onChangeText={email => this.updateInputState("email", email)}
+              placeholder="Email Address"
               placeholderTextColor="#0F195B"
+              keyboardType="email-address"
+              autoCapitalize="none"
               autoCorrect={false}
             />
           </View>
-          <View style={styles.containerColEnd}>
+          <View style={styles.row}>
+            <View style={styles.containerColStart}>
+              <TextInput
+                style={styles.firstnameInput}
+                onChangeText={first_name =>
+                  this.updateInputState("first_name", first_name)
+                }
+                placeholder="First Name"
+                placeholderTextColor="#0F195B"
+                autoCorrect={false}
+              />
+            </View>
+            <View style={styles.containerColEnd}>
+              <TextInput
+                style={styles.lastnameInput}
+                onChangeText={last_name =>
+                  this.updateInputState("last_name", last_name)
+                }
+                placeholder="Last Name"
+                placeholderTextColor="#0F195B"
+                autoCorrect={false}
+              />
+            </View>
+          </View>
+          <View style={styles.row}>
             <TextInput
-              style={styles.lastnameInput}
-              onChangeText={last_name =>
-                this.updateInputState("last_name", last_name)
-              }
-              placeholder="Last Name"
+              style={styles.emailInput}
+              onChangeText={phone => this.updateInputState("phone", phone)}
+              placeholder="Phone Number"
               placeholderTextColor="#0F195B"
+              keyboardType="number-pad"
               autoCorrect={false}
             />
           </View>
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={phone => this.updateInputState("phone", phone)}
-            placeholder="Phone Number"
-            placeholderTextColor="#0F195B"
-            keyboardType="number-pad"
-            autoCorrect={false}
-          />
-        </View>
-        <View style={styles.dob}>
-          <Text style={styles.dobText}>Date of Birth</Text>
-        </View>
-        {/*
-        <View style={styles.row}>
-          <View style={styles.containerColStart}>
-            <TextInput
-              style={styles.firstnameInput}
-              onChangeText={text => this.setState({ text })}
-              placeholder="Month"
-              placeholderTextColor="#0F195B"
+          <View style={styles.dob}>
+            <Text style={styles.dobText}>Date of Birth</Text>
+          </View>
+          <View style={styles.row}>
+            <DatePicker
+              style={{ width: "100%" }}
+              date={this.state.selectedDate}
+              mode="date"
+              placeholder="SELECT DATE OF BIRTH"
+              format="MM-DD-YYYY"
+              minDate="1900-01-01"
+              confirmBtnText="Confirm"
+              cancelBtnText="Cancel"
+              showIcon={false}
+              androidMode="spinner"
+              customStyles={{
+                dateTouch: {
+                  width: "100%"
+                },
+                dateText: {
+                  color: "#01396F",
+                  fontSize: 15
+                },
+                dateInput: {
+                  flex: 1,
+                  height: 40,
+                  borderWidth: 0,
+                  borderColor: "#aaa",
+                  borderRadius: 5,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "#efefef"
+                }
+              }}
+              onDateChange={new_date => {
+                this.setDate(new_date);
+              }}
             />
           </View>
-          <View style={styles.containerCol}>
-            <TextInput
-              style={styles.firstnameInput}
-              onChangeText={text => this.setState({ text })}
-              placeholder="Day"
-              placeholderTextColor="#0F195B"
+          <View style={styles.nextBt}>
+            <CustomButton
+              title="NEXT"
+              width="95%"
+              bgColor="#F3407B"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#FFFFFF"
+              fontWeight="bold"
+              borderWith={1}
+              borderColor="#F3407B"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              marginTop={15}
+              onPressHandler={() => this.saveContactInformation()}
             />
           </View>
-          <View style={styles.containerColEnd}>
-            <TextInput
-              style={styles.lastnameInput}
-              onChangeText={text => this.setState({ text })}
-              placeholder="Year"
-              placeholderTextColor="#0F195B"
+          <View style={styles.back}>
+            <Text style={styles.steps}>1 of 4</Text>
+            <CustomButton
+              title="BACK"
+              width="90%"
+              bgColor="#FFFFFF"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#01396F"
+              fontWeight="bold"
+              borderWidth={1}
+              borderColor="#01396F"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              onPressHandler={() => this.goBack()}
             />
           </View>
-        </View>
-        */}
-        <View style={styles.row}>
-          <DatePicker
-            style={{ width: "100%" }}
-            date={this.state.selectedDate}
-            mode="date"
-            placeholder="SELECT DATE OF BIRTH"
-            format="MM-DD-YYYY"
-            minDate="1900-01-01"
-            maxDate={this.state.currentDate}
-            confirmBtnText="Confirm"
-            cancelBtnText="Cancel"
-            showIcon={false}
-            customStyles={{
-              dateTouch: {
-                width: "100%"
-              },
-              dateText: {
-                color: "#01396F",
-                fontSize: 15
-              },
-              dateInput: {
-                flex: 1,
-                height: 40,
-                borderWidth: 0,
-                borderColor: "#aaa",
-                borderRadius: 5,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#efefef"
-              }
-            }}
-            onDateChange={new_date => {
-              this.setDate(new_date);
-            }}
-          />
-        </View>
-        <View style={styles.nextBt}>
-          <CustomButton
-            title="NEXT"
-            width="95%"
-            bgColor="#F3407B"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#FFFFFF"
-            fontWeight="bold"
-            borderWith={1}
-            borderColor="#F3407B"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            marginTop={15}
-            onPressHandler={() => this.saveContactInformation()}
-          />
-        </View>
-        <View style={styles.back}>
-          <Text style={styles.steps}>1 of 4</Text>
-          <CustomButton
-            title="BACK"
-            width="90%"
-            bgColor="#FFFFFF"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#01396F"
-            fontWeight="bold"
-            borderWidth={1}
-            borderColor="#01396F"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            onPressHandler={() => this.goBack()}
-          />
-        </View>
-        <View style={styles.powered}>
-          <Text style={styles.textPlan}>
-            Powered by <Text style={styles.pink}>Sepio Guard</Text>
-          </Text>
-        </View>
-      </View>
+          <View style={styles.powered}>
+            <Text style={styles.textPlan}>
+              Powered by <Text style={styles.pink}>Sepio Guard</Text>
+            </Text>
+          </View>
+        </Content>
+      </Container>
     );
   }
 }
@@ -501,6 +499,7 @@ const styles = StyleSheet.create({
   },
   row: {
     width: "95%",
+    marginLeft: "2.5%",
     height: 50,
     //backgroundColor: "green",
     justifyContent: "center",
@@ -570,7 +569,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "flex-start",
     marginTop: 10,
-    width: "94%"
+    width: "94%",
+    marginLeft: "3%"
   },
   back: {
     width: "100%",

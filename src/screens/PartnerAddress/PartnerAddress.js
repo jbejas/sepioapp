@@ -1,18 +1,28 @@
 import React, { Component } from "react";
 import {
   StyleSheet,
-  Text,
   View,
   TextInput,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Modal
+  Modal,
+  Image
 } from "react-native";
+import {
+  Container,
+  Header,
+  Title,
+  Content,
+  Button,
+  Left,
+  Right,
+  Body,
+  Text
+} from "native-base";
 import { Navigation } from "react-native-navigation";
 import RNPickerSelect from "react-native-picker-select";
 import validate from "../../utility/validation";
-import Image from "react-native-remote-svg";
+
 import CustomButton from "../../components/CustomButton/CustomButton";
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
@@ -417,7 +427,13 @@ class PartnerAddressScreen extends Component {
   goToScreen = screenName => {
     Navigation.push(this.props.componentId, {
       component: {
-        name: screenName
+        name: screenName,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0
+          }
+        }
       }
     });
   };
@@ -459,7 +475,7 @@ class PartnerAddressScreen extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
+      <Container>
         <Modal
           animationType="fade"
           transparent={true}
@@ -469,133 +485,146 @@ class PartnerAddressScreen extends Component {
             <ActivityIndicator size="large" color="#F3407B" />
           </View>
         </Modal>
-        <View style={styles.topHeader}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => this.openSideMenu()}
-          >
-            <Image source={menu} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.header}>
-          <Text style={styles.text1}>Family Member / Partner Address</Text>
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={address => this.updateInputState("address", address)}
-            placeholder="Street Address"
-            placeholderTextColor="#0F195B"
-            keyboardType="default"
-            autoCorrect={false}
-          />
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={address2 => this.updateAddress2(address2)}
-            placeholder="Apartment, suite, unit, building, etc"
-            placeholderTextColor="#0F195B"
-            keyboardType="default"
-            autoCorrect={false}
-          />
-        </View>
-        <View style={styles.row}>
-          <View style={styles.containerColStart}>
+        <Header
+          style={{
+            backgroundColor: "white",
+            borderBottomWidth: 0,
+            elevation: 0
+          }}
+        >
+          <Left>
+            <Button transparent onPress={() => this.openSideMenu()}>
+              <Image source={menu} />
+            </Button>
+          </Left>
+          <Body>
+            <Title style={{ color: "white" }}>Header</Title>
+          </Body>
+          <Right />
+        </Header>
+        <Content>
+          <View style={styles.header}>
+            <Text style={styles.text1}>Family Member / Partner Address</Text>
+          </View>
+          <View style={styles.row}>
             <TextInput
-              style={styles.firstnameInput}
-              onChangeText={city => this.updateInputState("city", city)}
-              placeholder="City"
+              style={styles.emailInput}
+              onChangeText={address =>
+                this.updateInputState("address", address)
+              }
+              placeholder="Street Address"
               placeholderTextColor="#0F195B"
+              keyboardType="default"
               autoCorrect={false}
             />
           </View>
-          <View style={styles.containerColEnd}>
-            <RNPickerSelect
-              placeholder={{
-                label: "Select State...",
-                value: null,
-                color: "#01396F"
-              }}
-              items={this.state.items}
-              hideIcon={true}
-              onValueChange={value => {
-                this.setStateValue(value);
-              }}
-              onUpArrow={() => {
-                this.inputRefs.name.focus();
-              }}
-              onDownArrow={() => {
-                this.inputRefs.picker2.togglePicker();
-              }}
-              style={{ ...pickerSelectStyles }}
-              value={this.state.favColor}
-              ref={el => {
-                this.inputRefs.picker = el;
+          <View style={styles.row}>
+            <TextInput
+              style={styles.emailInput}
+              onChangeText={address2 => this.updateAddress2(address2)}
+              placeholder="Apartment, suite, unit, building, etc"
+              placeholderTextColor="#0F195B"
+              keyboardType="default"
+              autoCorrect={false}
+            />
+          </View>
+          <View style={styles.row}>
+            <View style={styles.containerColStart}>
+              <TextInput
+                style={styles.firstnameInput}
+                onChangeText={city => this.updateInputState("city", city)}
+                placeholder="City"
+                placeholderTextColor="#0F195B"
+                autoCorrect={false}
+              />
+            </View>
+            <View style={styles.containerColEnd}>
+              <RNPickerSelect
+                placeholder={{
+                  label: "Select State...",
+                  value: null,
+                  color: "#01396F"
+                }}
+                items={this.state.items}
+                hideIcon={true}
+                onValueChange={value => {
+                  this.setStateValue(value);
+                }}
+                onUpArrow={() => {
+                  this.inputRefs.name.focus();
+                }}
+                onDownArrow={() => {
+                  this.inputRefs.picker2.togglePicker();
+                }}
+                style={{ ...pickerSelectStyles }}
+                value={this.state.favColor}
+                ref={el => {
+                  this.inputRefs.picker = el;
+                }}
+              />
+            </View>
+          </View>
+          <View style={styles.row}>
+            <TextInput
+              style={styles.emailInput}
+              onChangeText={zip => this.updateInputState("zip", zip)}
+              placeholder="ZIP Code"
+              placeholderTextColor="#0F195B"
+              keyboardType="number-pad"
+              autoCorrect={false}
+            />
+          </View>
+          <View style={styles.nextBt}>
+            <CustomButton
+              title="NEXT"
+              width="95%"
+              bgColor="#F3407B"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#FFFFFF"
+              fontWeight="bold"
+              borderWith={1}
+              borderColor="#F3407B"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              marginTop={15}
+              onPressHandler={() => {
+                this.saveContactAddress();
               }}
             />
           </View>
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={zip => this.updateInputState("zip", zip)}
-            placeholder="ZIP Code"
-            placeholderTextColor="#0F195B"
-            keyboardType="number-pad"
-            autoCorrect={false}
-          />
-        </View>
-        <View style={styles.nextBt}>
-          <CustomButton
-            title="NEXT"
-            width="95%"
-            bgColor="#F3407B"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#FFFFFF"
-            fontWeight="bold"
-            borderWith={1}
-            borderColor="#F3407B"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            marginTop={15}
-            onPressHandler={() => {
-              this.saveContactAddress();
-            }}
-          />
-        </View>
-        <View style={styles.back}>
-          <Text style={styles.steps}>2 of 4</Text>
-          <CustomButton
-            title="BACK"
-            width="90%"
-            bgColor="#FFFFFF"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#01396F"
-            fontWeight="bold"
-            borderWidth={1}
-            borderColor="#01396F"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            onPressHandler={() => this.goBack()}
-          />
-        </View>
-        <View style={styles.powered}>
-          <Text style={styles.textPlan}>
-            Powered by <Text style={styles.pink}>Sepio Guard</Text>
-          </Text>
-        </View>
-      </View>
+          <View style={styles.back}>
+            <Text style={styles.steps}>2 of 4</Text>
+            <CustomButton
+              title="BACK"
+              width="90%"
+              bgColor="#FFFFFF"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#01396F"
+              fontWeight="bold"
+              borderWidth={1}
+              borderColor="#01396F"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              onPressHandler={() => this.goBack()}
+            />
+          </View>
+          <View style={styles.powered}>
+            <Text style={styles.textPlan}>
+              Powered by <Text style={styles.pink}>Sepio Guard</Text>
+            </Text>
+          </View>
+        </Content>
+      </Container>
     );
   }
 }
@@ -630,7 +659,8 @@ const styles = StyleSheet.create({
     //backgroundColor: "green",
     justifyContent: "center",
     alignItems: "center",
-    flexDirection: "row"
+    flexDirection: "row",
+    marginLeft: "2.5%"
   },
   containerCol: {
     flex: 1,
@@ -695,7 +725,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "flex-start",
     marginTop: 10,
-    width: "94%"
+    width: "94%",
+    marginLeft: "3%"
   },
   back: {
     width: "100%",
@@ -762,9 +793,10 @@ const pickerSelectStyles = StyleSheet.create({
   },
   inputAndroid: {
     fontSize: 16,
-    paddingTop: 10,
+    paddingTop: 5,
     paddingHorizontal: 10,
-    paddingBottom: 10,
+    paddingBottom: 5,
+    height: 40,
     borderWidth: 0,
     borderColor: "gray",
     borderRadius: 4,

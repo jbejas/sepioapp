@@ -1,15 +1,14 @@
 import React, { Component } from "react";
 import {
   StyleSheet,
-  Text,
   View,
   TextInput,
   Alert,
   ActivityIndicator,
   Modal
 } from "react-native";
+import { Container, Content, Text } from "native-base";
 import { Navigation } from "react-native-navigation";
-import Image from "react-native-remote-svg";
 import validate from "../../utility/validation";
 import RNPickerSelect from "react-native-picker-select";
 import { openDatabase } from "react-native-sqlite-storage";
@@ -70,19 +69,6 @@ class SignupScreen extends Component {
     super(props);
     this.inputRefs = {};
     Navigation.events().bindComponent(this);
-    Navigation.mergeOptions(this.props.componentId, {
-      topBar: {
-        visible: true,
-        hideOnScroll: false,
-        background: {
-          color: "#FFFFFF"
-        },
-        noBorder: true,
-        backButton: {
-          color: "#FFF"
-        }
-      }
-    });
   }
 
   componentDidMount() {
@@ -348,7 +334,13 @@ class SignupScreen extends Component {
   goToScreen = screenName => {
     Navigation.push(this.props.componentId, {
       component: {
-        name: screenName
+        name: screenName,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0
+          }
+        }
       }
     });
   };
@@ -359,7 +351,7 @@ class SignupScreen extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
+      <Container>
         <Modal
           animationType="fade"
           transparent={true}
@@ -369,147 +361,148 @@ class SignupScreen extends Component {
             <ActivityIndicator size="large" color="#F3407B" />
           </View>
         </Modal>
-        <View style={styles.container1}>
-          {/*<Image source={logo} />*/}
-          <Text style={styles.text1}>Sign Up</Text>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={val => this.updateInputState("email", val)}
-            placeholder="Email Address"
-            placeholderTextColor="#0F195B"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          <View style={styles.row}>
-            <View style={styles.containerColStart}>
-              <TextInput
-                style={styles.firstnameInput}
-                onChangeText={val => this.updateInputState("first_name", val)}
-                placeholder="First Name"
-                placeholderTextColor="#0F195B"
-                autoCorrect={false}
+        <Content>
+          <View style={styles.container1}>
+            <Text style={styles.text1}>Sign Up</Text>
+            <TextInput
+              style={styles.emailInput}
+              onChangeText={val => this.updateInputState("email", val)}
+              placeholder="Email Address"
+              placeholderTextColor="#0F195B"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <View style={styles.row}>
+              <View style={styles.containerColStart}>
+                <TextInput
+                  style={styles.firstnameInput}
+                  onChangeText={val => this.updateInputState("first_name", val)}
+                  placeholder="First Name"
+                  placeholderTextColor="#0F195B"
+                  autoCorrect={false}
+                />
+              </View>
+              <View style={styles.containerColEnd}>
+                <TextInput
+                  style={styles.lastnameInput}
+                  onChangeText={val => this.updateInputState("last_name", val)}
+                  placeholder="Last Name"
+                  placeholderTextColor="#0F195B"
+                  autoCorrect={false}
+                />
+              </View>
+            </View>
+            <TextInput
+              style={styles.passwordInput}
+              onChangeText={val => this.updateInputState("phone", val)}
+              placeholder="Phone Number"
+              placeholderTextColor="#0F195B"
+              secureTextEntry
+              keyboardType="number-pad"
+              autoCorrect={false}
+            />
+            <TextInput
+              style={styles.passwordInput}
+              onChangeText={val => this.updateInputState("password", val)}
+              placeholder="Password"
+              placeholderTextColor="#0F195B"
+              autoCorrect={false}
+              secureTextEntry
+            />
+            <View style={[styles.row, styles.rowSelect]}>
+              <RNPickerSelect
+                placeholder={{
+                  label: "Select your company...",
+                  value: null,
+                  color: "#01396F"
+                }}
+                items={this.state.items}
+                hideIcon={true}
+                onValueChange={value => {
+                  this.setCompanyValue(value);
+                }}
+                onUpArrow={() => {
+                  this.inputRefs.name.focus();
+                }}
+                onDownArrow={() => {
+                  this.inputRefs.picker2.togglePicker();
+                }}
+                style={{ ...pickerSelectStyles }}
+                value={this.state.favColor}
+                ref={el => {
+                  this.inputRefs.picker = el;
+                }}
               />
             </View>
-            <View style={styles.containerColEnd}>
-              <TextInput
-                style={styles.lastnameInput}
-                onChangeText={val => this.updateInputState("last_name", val)}
-                placeholder="Last Name"
-                placeholderTextColor="#0F195B"
-                autoCorrect={false}
-              />
-            </View>
-          </View>
-          <TextInput
-            style={styles.passwordInput}
-            onChangeText={val => this.updateInputState("phone", val)}
-            placeholder="Phone Number"
-            placeholderTextColor="#0F195B"
-            secureTextEntry
-            keyboardType="number-pad"
-            autoCorrect={false}
-          />
-          <TextInput
-            style={styles.passwordInput}
-            onChangeText={val => this.updateInputState("password", val)}
-            placeholder="Password"
-            placeholderTextColor="#0F195B"
-            autoCorrect={false}
-            secureTextEntry
-          />
-          <View style={[styles.row, styles.rowSelect]}>
-            <RNPickerSelect
-              placeholder={{
-                label: "Select your company...",
-                value: null,
-                color: "#01396F"
-              }}
-              items={this.state.items}
-              hideIcon={true}
-              onValueChange={value => {
-                this.setCompanyValue(value);
-              }}
-              onUpArrow={() => {
-                this.inputRefs.name.focus();
-              }}
-              onDownArrow={() => {
-                this.inputRefs.picker2.togglePicker();
-              }}
-              style={{ ...pickerSelectStyles }}
-              value={this.state.favColor}
-              ref={el => {
-                this.inputRefs.picker = el;
-              }}
+
+            <CustomButton
+              title="SIGN UP"
+              width="90%"
+              bgColor="#F3407B"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              marginTop={0}
+              marginRight={0}
+              marginBottom={14}
+              marginLeft={0}
+              borderRadius={5}
+              textAlign="center"
+              color="#FFFFFF"
+              fontWeight="bold"
+              borderWith={1}
+              borderColor="#F3407B"
+              fontFamily="Avenir"
+              fontSize={16}
+              onPressHandler={() => this.signUp()}
+            />
+            <CustomButton
+              title="Forgot Password?"
+              width="90%"
+              bgColor="#FFFFFF"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              marginTop={0}
+              marginRight={0}
+              marginBottom={14}
+              marginLeft={0}
+              borderRadius={5}
+              textAlign="center"
+              color="#F3407B"
+              borderWith={1}
+              borderColor="#F3407B"
+              fontFamily="Avenir"
+              fontSize={16}
+              onPressHandler={() => this.goToScreen("ForgotPasswordScreen")}
+            />
+            <CustomButton
+              title="BACK"
+              width="90%"
+              bgColor="#FFFFFF"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              marginTop={0}
+              marginRight={0}
+              marginBottom={14}
+              marginLeft={0}
+              borderRadius={5}
+              textAlign="center"
+              color="#F3407B"
+              borderWith={1}
+              borderColor="#000000"
+              fontFamily="Avenir"
+              fontSize={16}
+              onPressHandler={() => this.goBack()}
             />
           </View>
-
-          <CustomButton
-            title="SIGN UP"
-            width="90%"
-            bgColor="#F3407B"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            marginTop={0}
-            marginRight={0}
-            marginBottom={14}
-            marginLeft={0}
-            borderRadius={5}
-            textAlign="center"
-            color="#FFFFFF"
-            fontWeight="bold"
-            borderWith={1}
-            borderColor="#F3407B"
-            fontFamily="Avenir"
-            fontSize={16}
-            onPressHandler={() => this.signUp()}
-          />
-          <CustomButton
-            title="Forgot Password?"
-            width="90%"
-            bgColor="#FFFFFF"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            marginTop={0}
-            marginRight={0}
-            marginBottom={14}
-            marginLeft={0}
-            borderRadius={5}
-            textAlign="center"
-            color="#F3407B"
-            borderWith={1}
-            borderColor="#F3407B"
-            fontFamily="Avenir"
-            fontSize={16}
-            onPressHandler={() => this.goToScreen("ForgotPasswordScreen")}
-          />
-          <CustomButton
-            title="BACK"
-            width="90%"
-            bgColor="#FFFFFF"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            marginTop={0}
-            marginRight={0}
-            marginBottom={14}
-            marginLeft={0}
-            borderRadius={5}
-            textAlign="center"
-            color="#F3407B"
-            borderWith={1}
-            borderColor="#000000"
-            fontFamily="Avenir"
-            fontSize={16}
-            onPressHandler={() => this.goBack()}
-          />
-        </View>
-      </View>
+        </Content>
+      </Container>
     );
   }
 }
@@ -656,9 +649,10 @@ const pickerSelectStyles = StyleSheet.create({
   },
   inputAndroid: {
     fontSize: 16,
-    paddingTop: 10,
+    paddingTop: 5,
     paddingHorizontal: 10,
-    paddingBottom: 10,
+    paddingBottom: 5,
+    height: 40,
     borderWidth: 0,
     borderColor: "gray",
     borderRadius: 4,

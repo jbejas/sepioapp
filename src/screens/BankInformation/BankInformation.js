@@ -1,16 +1,26 @@
 import React, { Component } from "react";
 import {
   StyleSheet,
-  Text,
   View,
   TextInput,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Modal
+  Modal,
+  Image
 } from "react-native";
+import {
+  Container,
+  Header,
+  Title,
+  Content,
+  Button,
+  Left,
+  Right,
+  Body,
+  Text
+} from "native-base";
 import { Navigation } from "react-native-navigation";
-import Image from "react-native-remote-svg";
+
 import RNPickerSelect from "react-native-picker-select";
 import validate from "../../utility/validation";
 import CustomButton from "../../components/CustomButton/CustomButton";
@@ -18,7 +28,7 @@ import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
 
 // IMAGES
-import scan from "../../assets/images/scan.svg";
+import scan from "../../assets/images/scan.png";
 import menu from "../../assets/images/menu.png";
 
 class BankInformationScreen extends Component {
@@ -95,10 +105,15 @@ class BankInformationScreen extends Component {
   }
 
   goToScreen = screenName => {
-    console.log("Screen Name -> " + screenName);
     Navigation.push(this.props.componentId, {
       component: {
-        name: screenName
+        name: screenName,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0
+          }
+        }
       }
     });
   };
@@ -273,7 +288,7 @@ class BankInformationScreen extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
+      <Container>
         <Modal
           animationType="fade"
           transparent={true}
@@ -283,124 +298,137 @@ class BankInformationScreen extends Component {
             <ActivityIndicator size="large" color="#F3407B" />
           </View>
         </Modal>
-        <View style={styles.topHeader}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => this.openSideMenu()}
-          >
-            <Image source={menu} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.header}>
-          <Text style={styles.text1}>Bank Account Information</Text>
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={value => this.updateInputState("holder_name", value)}
-            value={this.state.controls.holder_name.value}
-            placeholder="Account Holder Name"
-            placeholderTextColor="#0F195B"
-            keyboardType="default"
-          />
-        </View>
-        <View style={styles.row}>
-          <RNPickerSelect
-            placeholder={{
-              label: "Select Account Type...",
-              value: null,
-              color: "#01396F"
-            }}
-            items={this.state.account_type}
-            hideIcon={true}
-            onValueChange={value => {
-              this.setAccountType(value);
-            }}
-            value={this.state.selectedAccount}
-            onUpArrow={() => {
-              this.inputRefs.name.focus();
-            }}
-            onDownArrow={() => {
-              this.inputRefs.picker2.togglePicker();
-            }}
-            style={{ ...pickerSelectStyles }}
-            ref={el => {
-              this.inputRefs.picker = el;
-            }}
-          />
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={value =>
-              this.updateInputState("routing_number", value)
-            }
-            value={this.state.controls.routing_number.value}
-            placeholder="Routing Number"
-            placeholderTextColor="#0F195B"
-            keyboardType="number-pad"
-          />
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={value =>
-              this.updateInputState("account_number", value)
-            }
-            value={this.state.controls.account_number.value}
-            placeholder="Account Number"
-            placeholderTextColor="#0F195B"
-            keyboardType="number-pad"
-          />
-        </View>
-        <View style={styles.nextBt}>
-          <CustomButton
-            title="VIEW PAYMENT OPTIONS"
-            width="95%"
-            bgColor="#F3407B"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#FFFFFF"
-            fontWeight="bold"
-            borderWith={1}
-            borderColor="#F3407B"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            marginTop={15}
-            onPressHandler={() => this.setBankInfo()}
-          />
-        </View>
-        <View style={styles.back}>
-          <Text style={styles.steps}>3 of 4</Text>
-          <CustomButton
-            title="BACK"
-            width="90%"
-            bgColor="#FFFFFF"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#01396F"
-            fontWeight="bold"
-            borderWidth={1}
-            borderColor="#01396F"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            onPressHandler={() => this.goBack()}
-          />
-        </View>
-        <View style={styles.powered}>
-          <Text style={styles.textPlan}>
-            Powered by <Text style={styles.pink}>Sepio Guard</Text>
-          </Text>
-        </View>
-      </View>
+        <Header
+          style={{
+            backgroundColor: "white",
+            borderBottomWidth: 0,
+            elevation: 0
+          }}
+        >
+          <Left>
+            <Button transparent onPress={() => this.openSideMenu()}>
+              <Image source={menu} />
+            </Button>
+          </Left>
+          <Body>
+            <Title style={{ color: "white" }}>Header</Title>
+          </Body>
+          <Right />
+        </Header>
+        <Content>
+          <View style={styles.header}>
+            <Text style={styles.text1}>Bank Account Information</Text>
+          </View>
+          <View style={styles.row}>
+            <TextInput
+              style={styles.emailInput}
+              onChangeText={value =>
+                this.updateInputState("holder_name", value)
+              }
+              value={this.state.controls.holder_name.value}
+              placeholder="Account Holder Name"
+              placeholderTextColor="#0F195B"
+              keyboardType="default"
+            />
+          </View>
+          <View style={styles.row}>
+            <RNPickerSelect
+              placeholder={{
+                label: "Select Account Type...",
+                value: null,
+                color: "#01396F"
+              }}
+              items={this.state.account_type}
+              hideIcon={true}
+              onValueChange={value => {
+                this.setAccountType(value);
+              }}
+              value={this.state.selectedAccount}
+              onUpArrow={() => {
+                this.inputRefs.name.focus();
+              }}
+              onDownArrow={() => {
+                this.inputRefs.picker2.togglePicker();
+              }}
+              style={{ ...pickerSelectStyles }}
+              ref={el => {
+                this.inputRefs.picker = el;
+              }}
+            />
+          </View>
+          <View style={styles.row}>
+            <TextInput
+              style={styles.emailInput}
+              onChangeText={value =>
+                this.updateInputState("routing_number", value)
+              }
+              value={this.state.controls.routing_number.value}
+              placeholder="Routing Number"
+              placeholderTextColor="#0F195B"
+              keyboardType="number-pad"
+            />
+          </View>
+          <View style={styles.row}>
+            <TextInput
+              style={styles.emailInput}
+              onChangeText={value =>
+                this.updateInputState("account_number", value)
+              }
+              value={this.state.controls.account_number.value}
+              placeholder="Account Number"
+              placeholderTextColor="#0F195B"
+              keyboardType="number-pad"
+            />
+          </View>
+          <View style={styles.nextBt}>
+            <CustomButton
+              title="VIEW PAYMENT OPTIONS"
+              width="95%"
+              bgColor="#F3407B"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#FFFFFF"
+              fontWeight="bold"
+              borderWith={1}
+              borderColor="#F3407B"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              marginTop={15}
+              onPressHandler={() => this.setBankInfo()}
+            />
+          </View>
+          <View style={styles.back}>
+            <Text style={styles.steps}>3 of 4</Text>
+            <CustomButton
+              title="BACK"
+              width="90%"
+              bgColor="#FFFFFF"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#01396F"
+              fontWeight="bold"
+              borderWidth={1}
+              borderColor="#01396F"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              onPressHandler={() => this.goBack()}
+            />
+          </View>
+          <View style={styles.powered}>
+            <Text style={styles.textPlan}>
+              Powered by <Text style={styles.pink}>Sepio Guard</Text>
+            </Text>
+          </View>
+        </Content>
+      </Container>
     );
   }
 }
@@ -584,9 +612,10 @@ const pickerSelectStyles = StyleSheet.create({
   },
   inputAndroid: {
     fontSize: 16,
-    paddingTop: 10,
+    paddingTop: 5,
     paddingHorizontal: 10,
-    paddingBottom: 10,
+    paddingBottom: 5,
+    height: 40,
     borderWidth: 0,
     borderColor: "gray",
     borderRadius: 4,

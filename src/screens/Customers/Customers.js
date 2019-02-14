@@ -1,19 +1,29 @@
 import React, { Component } from "react";
 import {
   StyleSheet,
-  Text,
   View,
-  TouchableOpacity,
   Alert,
   FlatList,
   Linking,
   Platform,
   Modal,
-  ActivityIndicator
+  ActivityIndicator,
+  Image
 } from "react-native";
+import {
+  Container,
+  Header,
+  Title,
+  Content,
+  Button,
+  Left,
+  Right,
+  Body,
+  Text
+} from "native-base";
 import { Icon } from "react-native-elements";
 import { Navigation } from "react-native-navigation";
-import Image from "react-native-remote-svg";
+
 import call from "react-native-phone-call";
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
@@ -42,47 +52,89 @@ class CustomersScreen extends Component {
       };
     });
     db.transaction(tx => {
-      tx.executeSql("SELECT * FROM login WHERE ID = 1", [], (tx, results) => {
-        console.log("Results", results.rows.item(0));
-        if (results.rows.item(0).uid) {
-          fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
-            method: "GET",
-            credentials: "include"
-          })
-            .then(response => {
-              console.log("Response Customers", response);
-              let c = JSON.parse(response._bodyText);
-              let customers = [];
+      tx.executeSql(
+        "SELECT * FROM login WHERE ID = 1",
+        [],
+        (tx, results) => {
+          console.log("Results", results.rows.item(0));
+          if (results.rows.item(0).uid) {
+            fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
+              method: "GET",
+              credentials: "include"
+            })
+              .then(response => {
+                console.log("Response Customers", response);
+                let c = JSON.parse(response._bodyText);
+                let customers = [];
 
-              for (var i = 0; i < c.length; i++) {
-                var date = new Date(parseInt(c[i]["createdAt"]));
-                var month = date.getMonth() + 1;
-                if (month < 10) {
-                  month = "0" + month;
-                }
-                var day = date.getDay();
-                if (day < 10) {
-                  day = "0" + day;
-                }
-                var year = date.getFullYear();
-                var formattedTime = month + "/" + day + "/" + year;
+                for (var i = 0; i < c.length; i++) {
+                  var date = new Date(parseInt(c[i]["createdAt"]));
+                  var month = date.getMonth() + 1;
+                  if (month < 10) {
+                    month = "0" + month;
+                  }
+                  var day = date.getDay();
+                  if (day < 10) {
+                    day = "0" + day;
+                  }
+                  var year = date.getFullYear();
+                  var formattedTime = month + "/" + day + "/" + year;
 
-                if (c[i].vendor == results.rows.item(0).employer) {
-                  customers.push({
-                    key: c[i]["id"],
-                    firstName: c[i]["firstName"],
-                    lastName: c[i]["lastName"],
-                    emailAddress: c[i]["emailAddress"],
-                    createdOn: formattedTime,
-                    phone: c[i]["phone"]
+                  if (c[i].vendor == results.rows.item(0).employer) {
+                    customers.push({
+                      key: c[i]["id"],
+                      firstName: c[i]["firstName"],
+                      lastName: c[i]["lastName"],
+                      emailAddress: c[i]["emailAddress"],
+                      createdOn: formattedTime,
+                      phone: c[i]["phone"]
+                    });
+                  }
+                }
+
+                if (customers.length == 0) {
+                  Alert.alert(
+                    "Customers",
+                    "You have no customers associated to your profile.",
+                    [
+                      {
+                        text: "OK",
+                        onPress: () => {
+                          console.log("OK Pressed");
+                          setTimeout(() => {
+                            this.setState(prevState => {
+                              return {
+                                ...prevState,
+                                activityDisplay: false
+                              };
+                            });
+                          }, 200);
+                        }
+                      }
+                    ],
+                    { cancelable: false }
+                  );
+                } else {
+                  this.setState(prevState => {
+                    return {
+                      ...prevState,
+                      customers: customers
+                    };
                   });
+                  setTimeout(() => {
+                    this.setState(prevState => {
+                      return {
+                        ...prevState,
+                        activityDisplay: false
+                      };
+                    });
+                  }, 500);
                 }
-              }
-
-              if (customers.length == 0) {
+              })
+              .catch(error => {
                 Alert.alert(
-                  "Customers",
-                  "You have no customers associated to your profile.",
+                  "Error",
+                  "The App failed to load the Customers List.",
                   [
                     {
                       text: "OK",
@@ -101,48 +153,13 @@ class CustomersScreen extends Component {
                   ],
                   { cancelable: false }
                 );
-              } else {
-                this.setState(prevState => {
-                  return {
-                    ...prevState,
-                    customers: customers
-                  };
-                });
-                setTimeout(() => {
-                  this.setState(prevState => {
-                    return {
-                      ...prevState,
-                      activityDisplay: false
-                    };
-                  });
-                }, 500);
-              }
-            })
-            .catch(error => {
-              Alert.alert(
-                "Error",
-                "The App failed to load the Customers List.",
-                [
-                  {
-                    text: "OK",
-                    onPress: () => {
-                      console.log("OK Pressed");
-                      setTimeout(() => {
-                        this.setState(prevState => {
-                          return {
-                            ...prevState,
-                            activityDisplay: false
-                          };
-                        });
-                      }, 200);
-                    }
-                  }
-                ],
-                { cancelable: false }
-              );
-            });
+              });
+          }
+        },
+        err => {
+          console.log("Error checking login existence", err);
         }
-      });
+      );
     });
   }
 
@@ -153,7 +170,13 @@ class CustomersScreen extends Component {
   goToScreen = screenName => {
     Navigation.push(this.props.componentId, {
       component: {
-        name: screenName
+        name: screenName,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0
+          }
+        }
       }
     });
   };
@@ -207,7 +230,7 @@ class CustomersScreen extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
+      <Container>
         <Modal
           animationType="fade"
           transparent={true}
@@ -217,74 +240,85 @@ class CustomersScreen extends Component {
             <ActivityIndicator size="large" color="#F3407B" />
           </View>
         </Modal>
-        <View style={styles.topHeader}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => this.openSideMenu()}
-          >
-            <Image source={menu} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.header}>
-          <Text style={styles.text1}>Customers</Text>
-        </View>
-        <View style={styles.planSelectors}>
-          <FlatList
-            style={styles.customerList}
-            data={this.state.customers}
-            renderItem={({ item }) => (
-              <View style={styles.customer}>
-                <View style={styles.customerName}>
-                  <View>
-                    <Text style={styles.customerText}>
-                      {item.firstName} {item.lastName}
-                    </Text>
+        <Header
+          style={{
+            backgroundColor: "white",
+            borderBottomWidth: 0,
+            elevation: 0
+          }}
+        >
+          <Left>
+            <Button transparent onPress={() => this.openSideMenu()}>
+              <Image source={menu} />
+            </Button>
+          </Left>
+          <Body>
+            <Title style={{ color: "white" }}>Header</Title>
+          </Body>
+          <Right />
+        </Header>
+        <Content>
+          <View style={styles.header}>
+            <Text style={styles.text1}>Customers</Text>
+          </View>
+          <View style={styles.planSelectors}>
+            <FlatList
+              style={styles.customerList}
+              data={this.state.customers}
+              renderItem={({ item }) => (
+                <View style={styles.customer}>
+                  <View style={styles.customerName}>
+                    <View>
+                      <Text style={styles.customerText}>
+                        {item.firstName} {item.lastName}
+                      </Text>
+                    </View>
+                    <View>
+                      <Text style={styles.customerEmail}>
+                        {item.emailAddress}
+                      </Text>
+                    </View>
+                    <View>
+                      <Text style={styles.customerEmail}>
+                        Signup Date: {item.createdOn}
+                      </Text>
+                    </View>
                   </View>
-                  <View>
-                    <Text style={styles.customerEmail}>
-                      {item.emailAddress}
-                    </Text>
+                  <View style={styles.phone}>
+                    <Icon
+                      name="phone"
+                      color="#517fa4"
+                      containerStyle={{ marginTop: 8 }}
+                      onPress={() => this.makeCall(item.phone)}
+                    />
                   </View>
-                  <View>
-                    <Text style={styles.customerEmail}>
-                      Signup Date: {item.createdOn}
-                    </Text>
+                  <View style={styles.sms}>
+                    <Icon
+                      name="textsms"
+                      color="#517fa4"
+                      containerStyle={{ marginTop: 8 }}
+                      onPress={() => this.sendSMS(item.phone)}
+                    />
+                  </View>
+                  <View style={styles.email}>
+                    <Icon
+                      name="mail"
+                      color="#517fa4"
+                      containerStyle={{ marginTop: 6 }}
+                      onPress={() => this.sendEmail(item.emailAddress)}
+                    />
                   </View>
                 </View>
-                <View style={styles.phone}>
-                  <Icon
-                    name="phone"
-                    color="#517fa4"
-                    containerStyle={{ marginTop: 8 }}
-                    onPress={() => this.makeCall(item.phone)}
-                  />
-                </View>
-                <View style={styles.sms}>
-                  <Icon
-                    name="textsms"
-                    color="#517fa4"
-                    containerStyle={{ marginTop: 8 }}
-                    onPress={() => this.sendSMS(item.phone)}
-                  />
-                </View>
-                <View style={styles.email}>
-                  <Icon
-                    name="mail"
-                    color="#517fa4"
-                    containerStyle={{ marginTop: 6 }}
-                    onPress={() => this.sendEmail(item.emailAddress)}
-                  />
-                </View>
-              </View>
-            )}
-          />
-        </View>
-        <View style={styles.powered}>
-          <Text style={styles.textPlan}>
-            Powered by <Text style={styles.pink}>Sepio Guard</Text>
-          </Text>
-        </View>
-      </View>
+              )}
+            />
+          </View>
+          <View style={styles.powered}>
+            <Text style={styles.textPlan}>
+              Powered by <Text style={styles.pink}>Sepio Guard</Text>
+            </Text>
+          </View>
+        </Content>
+      </Container>
     );
   }
 }

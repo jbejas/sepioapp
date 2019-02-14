@@ -1,23 +1,33 @@
 import React, { Component } from "react";
 import {
   StyleSheet,
-  Text,
   View,
   TouchableWithoutFeedback,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Modal
+  Modal,
+  Image
 } from "react-native";
+import {
+  Container,
+  Header,
+  Title,
+  Content,
+  Button,
+  Left,
+  Right,
+  Body,
+  Text
+} from "native-base";
 import { Navigation } from "react-native-navigation";
 import CustomButton from "../../components/CustomButton/CustomButton";
-import Image from "react-native-remote-svg";
+
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
 
 // IMAGES
-import cc from "../../assets/images/cc.svg";
-import bank from "../../assets/images/bank.svg";
+import cc from "../../assets/images/cc.png";
+import bank from "../../assets/images/bank.png";
 import menu from "../../assets/images/menu.png";
 
 class BillingInformationScreen extends Component {
@@ -59,7 +69,13 @@ class BillingInformationScreen extends Component {
   goToScreen = screenName => {
     Navigation.push(this.props.componentId, {
       component: {
-        name: screenName
+        name: screenName,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0
+          }
+        }
       }
     });
   };
@@ -134,7 +150,7 @@ class BillingInformationScreen extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
+      <Container>
         <Modal
           animationType="fade"
           transparent={true}
@@ -144,107 +160,118 @@ class BillingInformationScreen extends Component {
             <ActivityIndicator size="large" color="#F3407B" />
           </View>
         </Modal>
-        <View style={styles.topHeader}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => this.openSideMenu()}
-          >
-            <Image source={menu} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.header}>
-          <Text style={styles.text1}>Billing Information</Text>
-        </View>
-        <View style={styles.planSelectors}>
-          <View style={styles.planContainer}>
-            <TouchableWithoutFeedback
-              onPress={() => {
-                this.addCC(1);
-              }}
-            >
-              <View
-                style={
-                  this.state.selectedPayment == 1
-                    ? styles.buttonBgSelected
-                    : styles.buttonBg
-                }
-              >
-                <Image source={cc} />
-              </View>
-            </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback
-              onPress={() => {
-                this.addACH(2);
-              }}
-            >
-              <View
-                style={
-                  this.state.selectedPayment == 2
-                    ? styles.buttonBgSelected
-                    : styles.buttonBg
-                }
-              >
-                <Image source={bank} />
-              </View>
-            </TouchableWithoutFeedback>
+        <Header
+          style={{
+            backgroundColor: "white",
+            borderBottomWidth: 0,
+            elevation: 0
+          }}
+        >
+          <Left>
+            <Button transparent onPress={() => this.openSideMenu()}>
+              <Image source={menu} />
+            </Button>
+          </Left>
+          <Body>
+            <Title style={{ color: "white" }}>Header</Title>
+          </Body>
+          <Right />
+        </Header>
+        <Content>
+          <View style={styles.header}>
+            <Text style={styles.text1}>Billing Information</Text>
           </View>
-          <View style={styles.planDescription}>
-            <View style={styles.containerText}>
-              <Text style={styles.textPlan}>Add Credit Card</Text>
+          <View style={styles.planSelectors}>
+            <View style={styles.planContainer}>
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  this.addCC(1);
+                }}
+              >
+                <View
+                  style={
+                    this.state.selectedPayment == 1
+                      ? styles.buttonBgSelected
+                      : styles.buttonBg
+                  }
+                >
+                  <Image source={cc} />
+                </View>
+              </TouchableWithoutFeedback>
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  this.addACH(2);
+                }}
+              >
+                <View
+                  style={
+                    this.state.selectedPayment == 2
+                      ? styles.buttonBgSelected
+                      : styles.buttonBg
+                  }
+                >
+                  <Image source={bank} />
+                </View>
+              </TouchableWithoutFeedback>
             </View>
-            <View style={styles.containerText}>
-              <Text style={styles.textPlan}>Link Bank (ACH)</Text>
+            <View style={styles.planDescription}>
+              <View style={styles.containerText}>
+                <Text style={styles.textPlan}>Add Credit Card</Text>
+              </View>
+              <View style={styles.containerText}>
+                <Text style={styles.textPlan}>Link Bank (ACH)</Text>
+              </View>
             </View>
           </View>
-        </View>
-        <View style={styles.nextBt}>
-          <CustomButton
-            title="NEXT"
-            width="95%"
-            bgColor="#F3407B"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#FFFFFF"
-            fontWeight="bold"
-            borderWith={1}
-            borderColor="#F3407B"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            marginTop={15}
-            onPressHandler={() => this.processBilling()}
-          />
-        </View>
-        <View style={styles.back}>
-          <Text style={styles.steps}>3 of 4</Text>
-          <CustomButton
-            title="BACK"
-            width="90%"
-            bgColor="#FFFFFF"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#01396F"
-            fontWeight="bold"
-            borderWidth={1}
-            borderColor="#01396F"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            onPressHandler={() => this.goBack()}
-          />
-        </View>
-        <View style={styles.powered}>
-          <Text style={styles.textPlan}>
-            Powered by <Text style={styles.pink}>Sepio Guard</Text>
-          </Text>
-        </View>
-      </View>
+          <View style={styles.nextBt}>
+            <CustomButton
+              title="NEXT"
+              width="95%"
+              bgColor="#F3407B"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#FFFFFF"
+              fontWeight="bold"
+              borderWith={1}
+              borderColor="#F3407B"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              marginTop={15}
+              onPressHandler={() => this.processBilling()}
+            />
+          </View>
+          <View style={styles.back}>
+            <Text style={styles.steps}>3 of 4</Text>
+            <CustomButton
+              title="BACK"
+              width="90%"
+              bgColor="#FFFFFF"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#01396F"
+              fontWeight="bold"
+              borderWidth={1}
+              borderColor="#01396F"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              onPressHandler={() => this.goBack()}
+            />
+          </View>
+          <View style={styles.powered}>
+            <Text style={styles.textPlan}>
+              Powered by <Text style={styles.pink}>Sepio Guard</Text>
+            </Text>
+          </View>
+        </Content>
+      </Container>
     );
   }
 }
@@ -302,16 +329,16 @@ const styles = StyleSheet.create({
     width: "93%"
   },
   buttonBg: {
-    width: 150,
-    height: 150,
+    width: 140,
+    height: 140,
     backgroundColor: "#F3F3F7",
     justifyContent: "space-around",
     alignItems: "center",
     borderRadius: 5
   },
   buttonBgSelected: {
-    width: 150,
-    height: 150,
+    width: 140,
+    height: 140,
     backgroundColor: "#F3F3F7",
     justifyContent: "space-around",
     alignItems: "center",

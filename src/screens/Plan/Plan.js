@@ -1,26 +1,36 @@
 import React, { Component } from "react";
 import {
   StyleSheet,
-  Text,
   View,
   TextInput,
   TouchableWithoutFeedback,
-  TouchableOpacity,
   Modal,
   Alert,
   Linking,
-  Platform
+  Platform,
+  Image
 } from "react-native";
+import {
+  Container,
+  Header,
+  Title,
+  Content,
+  Button,
+  Left,
+  Right,
+  Body,
+  Text
+} from "native-base";
 import { Navigation } from "react-native-navigation";
-import Image from "react-native-remote-svg";
+
 import RNPickerSelect from "react-native-picker-select";
 import CustomButton from "../../components/CustomButton/CustomButton";
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
 
 // IMAGES
-import singlePlan from "../../assets/images/single-plan.svg";
-import spousePlan from "../../assets/images/spouse-plan.svg";
+import singlePlan from "../../assets/images/single-plan.png";
+import spousePlan from "../../assets/images/spouse-plan.png";
 import menu from "../../assets/images/menu.png";
 
 class PlanScreen extends Component {
@@ -41,55 +51,51 @@ class PlanScreen extends Component {
 
   componentDidMount() {
     db.transaction(tx => {
-      tx.executeSql("SELECT * FROM login WHERE ID = 1", [], (tx, results) => {
-        console.log("Results", results.rows.item(0));
-        if (results.rows.item(0).uid) {
-          fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
-            method: "GET",
-            credentials: "include"
-          })
-            .then(response => {
-              console.log("Response Customers", response);
-              let c = JSON.parse(response._bodyText);
-              let customers = [];
+      tx.executeSql(
+        "SELECT * FROM login WHERE ID = 1",
+        [],
+        (tx, results) => {
+          console.log("Results", results.rows.item(0).uid);
+          if (results.rows.item(0).uid) {
+            fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
+              method: "GET",
+              credentials: "include"
+            })
+              .then(response => {
+                console.log("Response Customers", response._bodyText);
+                let c = JSON.parse(response._bodyText);
+                console.log("Response Customers", c.length);
+                let customers = [];
 
-              for (var i = 0; i < c.length; i++) {
-                var date = new Date(parseInt(c[i]["createdAt"]));
-                var month = date.getMonth() + 1;
-                if (month < 10) {
-                  month = "0" + month;
+                for (var i = 0; i < c.length; i++) {
+                  if (c[i].vendor == results.rows.item(0).employer) {
+                    customers.push({
+                      value: c[i]["id"],
+                      label: c[i]["firstName"] + " " + c[i]["lastName"]
+                    });
+                  }
                 }
-                var day = date.getDay();
-                if (day < 10) {
-                  day = "0" + day;
-                }
-                var year = date.getFullYear();
-                var formattedTime = month + "/" + day + "/" + year;
 
-                if (c[i].vendor == results.rows.item(0).employer) {
-                  customers.push({
-                    value: c[i]["id"],
-                    label: c[i]["firstName"] + " " + c[i]["lastName"]
+                if (customers.length == 0) {
+                  console.log("No Customers");
+                } else {
+                  this.setState(prevState => {
+                    return {
+                      ...prevState,
+                      customers: customers
+                    };
                   });
                 }
-              }
-
-              if (customers.length == 0) {
-                console.log("No Customers");
-              } else {
-                this.setState(prevState => {
-                  return {
-                    ...prevState,
-                    customers: customers
-                  };
-                });
-              }
-            })
-            .catch(error => {
-              console.log("Error retrieveing customers.");
-            });
+              })
+              .catch(error => {
+                console.log("Error retrieveing customers.");
+              });
+          }
+        },
+        err => {
+          console.log("Error checking login existence", err);
         }
-      });
+      );
     });
   }
 
@@ -117,7 +123,12 @@ class PlanScreen extends Component {
   }
 
   setModalVisible(visible) {
-    this.setState({ modalVisible: visible });
+    this.setState(prevState => {
+      return {
+        ...prevState,
+        modalVisible: visible
+      };
+    });
   }
 
   setCustomer = value => {
@@ -133,7 +144,13 @@ class PlanScreen extends Component {
   goToScreen = screenName => {
     Navigation.push(this.props.componentId, {
       component: {
-        name: screenName
+        name: screenName,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0
+          }
+        }
       }
     });
   };
@@ -253,7 +270,7 @@ class PlanScreen extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
+      <Container>
         <Modal
           animationType="fade"
           transparent
@@ -272,7 +289,13 @@ class PlanScreen extends Component {
               </Text>
               <Text style={styles.text3}>out the form themselves. Please</Text>
               <Text style={styles.text3}>choose one of the options below.</Text>
-              <View style={[styles.row, styles.selectBox]}>
+              <View
+                style={{
+                  flex: 1,
+                  width: "90%",
+                  marginTop: 20
+                }}
+              >
                 <RNPickerSelect
                   placeholder={{
                     label: "Select Customer...",
@@ -296,9 +319,22 @@ class PlanScreen extends Component {
                   }}
                 />
               </View>
-              <View style={[styles.row, styles.selectBox]}>
+              <View
+                style={{
+                  flex: 1,
+                  backgroundColor: "#efefef",
+                  borderRadius: 5,
+                  width: "90%",
+                  height: 30,
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexDirection: "row",
+                  marginTop: 10,
+                  marginBottom: 0
+                }}
+              >
                 <TextInput
-                  style={styles.select}
+                  style={{ marginHorizontal: 10 }}
                   value={this.state.link}
                   placeholderTextColor="#0F195B"
                 />
@@ -365,109 +401,120 @@ class PlanScreen extends Component {
             </View>
           </View>
         </Modal>
-        <View style={styles.topHeader}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => this.openSideMenu()}
-          >
-            <Image source={menu} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.header}>
-          <Text style={styles.text1}>Choose a Plan</Text>
-        </View>
-        <View style={styles.planSelectors}>
-          <View style={styles.planContainer}>
-            <TouchableWithoutFeedback
-              onPress={() => {
-                this.selectPlan(1);
-              }}
-            >
-              <View
-                style={
-                  this.state.selectedPlan == 1
-                    ? styles.buttonBgSelected
-                    : styles.buttonBg
-                }
-              >
-                <Image source={singlePlan} />
-              </View>
-            </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback
-              onPress={() => {
-                this.selectPlan(2);
-              }}
-            >
-              <View
-                style={
-                  this.state.selectedPlan == 2
-                    ? styles.buttonBgSelected
-                    : styles.buttonBg
-                }
-              >
-                <Image source={spousePlan} />
-              </View>
-            </TouchableWithoutFeedback>
+        <Header
+          style={{
+            backgroundColor: "white",
+            borderBottomWidth: 0,
+            elevation: 0
+          }}
+        >
+          <Left>
+            <Button transparent onPress={() => this.openSideMenu()}>
+              <Image source={menu} />
+            </Button>
+          </Left>
+          <Body>
+            <Title style={{ color: "white" }}>Header</Title>
+          </Body>
+          <Right />
+        </Header>
+        <Content>
+          <View style={styles.header}>
+            <Text style={styles.text1}>Choose a Plan</Text>
           </View>
-          <View style={styles.planDescription}>
-            <View style={styles.containerText}>
-              <Text style={styles.textPlan}>Single Plan</Text>
+          <View style={styles.planSelectors}>
+            <View style={styles.planContainer}>
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  this.selectPlan(1);
+                }}
+              >
+                <View
+                  style={
+                    this.state.selectedPlan == 1
+                      ? styles.buttonBgSelected
+                      : styles.buttonBg
+                  }
+                >
+                  <Image source={singlePlan} />
+                </View>
+              </TouchableWithoutFeedback>
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  this.selectPlan(2);
+                }}
+              >
+                <View
+                  style={
+                    this.state.selectedPlan == 2
+                      ? styles.buttonBgSelected
+                      : styles.buttonBg
+                  }
+                >
+                  <Image source={spousePlan} />
+                </View>
+              </TouchableWithoutFeedback>
             </View>
-            <View style={styles.containerText}>
-              <Text style={styles.textPlan}>
-                Add Family{"\n"}Member / Partner
-              </Text>
+            <View style={styles.planDescription}>
+              <View style={styles.containerText}>
+                <Text style={styles.textPlan}>Single Plan</Text>
+              </View>
+              <View style={styles.containerText}>
+                <Text style={styles.textPlan}>
+                  Add Family{"\n"}Member / Partner
+                </Text>
+              </View>
             </View>
+            <CustomButton
+              title="NEXT"
+              width="90%"
+              bgColor="#F3407B"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#FFFFFF"
+              fontWeight="bold"
+              borderWith={1}
+              borderColor="#F3407B"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              marginTop={15}
+              onPressHandler={() => this.processPlan()}
+            />
           </View>
-          <CustomButton
-            title="NEXT"
-            width="90%"
-            bgColor="#F3407B"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#FFFFFF"
-            fontWeight="bold"
-            borderWith={1}
-            borderColor="#F3407B"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            marginTop={15}
-            onPressHandler={() => this.processPlan()}
-          />
-        </View>
-        <View style={styles.sendLink}>
-          <Text style={styles.textPlan}>
-            Need to send the form directly to a customer?
-          </Text>
-          <CustomButton
-            title="SEND A LINK"
-            width="90%"
-            bgColor="#FFFFFF"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#01396F"
-            fontWeight="bold"
-            borderWidth={1}
-            borderColor="#01396F"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            onPressHandler={() => this.setModalVisible(true)}
-          />
-        </View>
-        <View style={styles.powered}>
-          <Text style={styles.textPlan}>
-            Powered by <Text style={styles.pink}>Sepio Guard</Text>
-          </Text>
-        </View>
-      </View>
+          <View style={styles.sendLink}>
+            <Text style={styles.textPlan}>
+              Need to send the form directly to a customer?
+            </Text>
+            <CustomButton
+              title="SEND A LINK"
+              width="90%"
+              bgColor="#FFFFFF"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#01396F"
+              fontWeight="bold"
+              borderWidth={1}
+              borderColor="#01396F"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              onPressHandler={() => this.setModalVisible(true)}
+            />
+          </View>
+          <View style={styles.powered}>
+            <Text style={styles.textPlan}>
+              Powered by <Text style={styles.pink}>Sepio Guard</Text>
+            </Text>
+          </View>
+        </Content>
+      </Container>
     );
   }
 }
@@ -519,16 +566,16 @@ const styles = StyleSheet.create({
     width: "93%"
   },
   buttonBg: {
-    width: 150,
-    height: 150,
+    width: 140,
+    height: 140,
     backgroundColor: "#F3F3F7",
     justifyContent: "space-around",
     alignItems: "center",
     borderRadius: 5
   },
   buttonBgSelected: {
-    width: 150,
-    height: 150,
+    width: 140,
+    height: 140,
     backgroundColor: "#F3F3F7",
     justifyContent: "space-around",
     alignItems: "center",
@@ -563,10 +610,11 @@ const styles = StyleSheet.create({
     color: "#01396F",
     fontSize: 15,
     fontFamily: "Avenir",
-    marginTop: 10,
-    marginBottom: 10,
+    marginTop: 20,
+    marginBottom: 20,
     textAlign: "center",
-    width: "100%"
+    width: "100%",
+    paddingHorizontal: 10
   },
   containerText: {
     width: "50%"
@@ -654,9 +702,10 @@ const pickerSelectStyles = StyleSheet.create({
   },
   inputAndroid: {
     fontSize: 16,
-    paddingTop: 10,
+    paddingTop: 5,
     paddingHorizontal: 10,
-    paddingBottom: 10,
+    paddingBottom: 5,
+    height: 40,
     borderWidth: 0,
     borderColor: "gray",
     borderRadius: 4,

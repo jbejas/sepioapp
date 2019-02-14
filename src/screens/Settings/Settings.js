@@ -1,18 +1,26 @@
 import React, { Component } from "react";
 import {
   StyleSheet,
-  Text,
   View,
   TextInput,
-  TouchableOpacity,
   Modal,
   ActivityIndicator,
   Alert
 } from "react-native";
+import {
+  Container,
+  Header,
+  Title,
+  Content,
+  Button,
+  Left,
+  Right,
+  Body,
+  Text
+} from "native-base";
 import { Navigation } from "react-native-navigation";
-import Image from "react-native-remote-svg";
+
 import CustomButton from "../../components/CustomButton/CustomButton";
-import RNPickerSelect from "react-native-picker-select";
 import validate from "../../utility/validation";
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
@@ -97,34 +105,39 @@ class SettingsScreen extends Component {
           };
         });
 
-        db.transaction(tx => {
-          tx.executeSql(
-            "SELECT * FROM login WHERE ID = 1",
-            [],
-            (tx, results) => {
-              console.log("RETRIEVING USER DATA", results.rows.item(0));
-              this.updateInputState("email", results.rows.item(0).email);
-              this.updateInputState(
-                "first_name",
-                results.rows.item(0).first_name
-              );
-              this.updateInputState(
-                "last_name",
-                results.rows.item(0).last_name
-              );
-              this.updateInputState("phone", results.rows.item(0).phone);
-              this.setCompanyValue(results.rows.item(0).employer);
-              setTimeout(() => {
-                this.setState(prevState => {
-                  return {
-                    ...prevState,
-                    activityDisplay: false
-                  };
-                });
-              }, 500);
-            }
-          );
-        });
+        db.transaction(
+          tx => {
+            tx.executeSql(
+              "SELECT * FROM login WHERE ID = 1",
+              [],
+              (tx, results) => {
+                console.log("RETRIEVING USER DATA", results.rows.item(0));
+                this.updateInputState("email", results.rows.item(0).email);
+                this.updateInputState(
+                  "first_name",
+                  results.rows.item(0).first_name
+                );
+                this.updateInputState(
+                  "last_name",
+                  results.rows.item(0).last_name
+                );
+                this.updateInputState("phone", results.rows.item(0).phone);
+                this.setCompanyValue(results.rows.item(0).employer);
+                setTimeout(() => {
+                  this.setState(prevState => {
+                    return {
+                      ...prevState,
+                      activityDisplay: false
+                    };
+                  });
+                }, 500);
+              }
+            );
+          },
+          err => {
+            console.log("Error checking login existence", err);
+          }
+        );
       })
       .catch(error => {
         setTimeout(() => {
@@ -148,7 +161,13 @@ class SettingsScreen extends Component {
   goToScreen = screenName => {
     Navigation.push(this.props.componentId, {
       component: {
-        name: screenName
+        name: screenName,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0
+          }
+        }
       }
     });
   };
@@ -385,7 +404,7 @@ class SettingsScreen extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
+      <Container>
         <Modal
           animationType="fade"
           transparent={true}
@@ -395,139 +414,125 @@ class SettingsScreen extends Component {
             <ActivityIndicator size="large" color="#F3407B" />
           </View>
         </Modal>
-        <View style={styles.topHeader}>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => this.openSideMenu()}
-          >
-            <Image source={menu} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.header}>
-          <Text style={styles.text1}>Settings</Text>
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={email => this.updateInputState("email", email)}
-            value={this.state.controls.email.value}
-            placeholder="Email Address"
-            placeholderTextColor="#0F195B"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            editable={false}
-          />
-        </View>
-        <View style={styles.row}>
-          <View style={styles.containerColStart}>
+        <Header
+          style={{
+            backgroundColor: "white",
+            borderBottomWidth: 0,
+            elevation: 0
+          }}
+        >
+          <Left>
+            <Button transparent onPress={() => this.openSideMenu()}>
+              <Image source={menu} />
+            </Button>
+          </Left>
+          <Body>
+            <Title style={{ color: "white" }}>Header</Title>
+          </Body>
+          <Right />
+        </Header>
+        <Content>
+          <View style={styles.header}>
+            <Text style={styles.text1}>Settings</Text>
+          </View>
+          <View style={styles.row}>
             <TextInput
-              style={styles.firstnameInput}
-              onChangeText={first_name =>
-                this.updateInputState("first_name", first_name)
-              }
-              value={this.state.controls.first_name.value}
-              placeholder="First Name"
+              style={styles.emailInput}
+              onChangeText={email => this.updateInputState("email", email)}
+              value={this.state.controls.email.value}
+              placeholder="Email Address"
               placeholderTextColor="#0F195B"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={false}
+            />
+          </View>
+          <View style={styles.row}>
+            <View style={styles.containerColStart}>
+              <TextInput
+                style={styles.firstnameInput}
+                onChangeText={first_name =>
+                  this.updateInputState("first_name", first_name)
+                }
+                value={this.state.controls.first_name.value}
+                placeholder="First Name"
+                placeholderTextColor="#0F195B"
+                autoCorrect={false}
+              />
+            </View>
+            <View style={styles.containerColEnd}>
+              <TextInput
+                style={styles.lastnameInput}
+                onChangeText={last_name =>
+                  this.updateInputState("last_name", last_name)
+                }
+                value={this.state.controls.last_name.value}
+                placeholder="Last Name"
+                placeholderTextColor="#0F195B"
+                autoCorrect={false}
+              />
+            </View>
+          </View>
+          <View style={styles.row}>
+            <TextInput
+              style={styles.emailInput}
+              onChangeText={phone => this.updateInputState("phone", phone)}
+              value={this.state.controls.phone.value}
+              placeholder="Phone Number"
+              placeholderTextColor="#0F195B"
+              keyboardType="number-pad"
               autoCorrect={false}
             />
           </View>
-          <View style={styles.containerColEnd}>
-            <TextInput
-              style={styles.lastnameInput}
-              onChangeText={last_name =>
-                this.updateInputState("last_name", last_name)
-              }
-              value={this.state.controls.last_name.value}
-              placeholder="Last Name"
-              placeholderTextColor="#0F195B"
-              autoCorrect={false}
+          <View style={styles.nextBt}>
+            <CustomButton
+              title="SAVE"
+              width="95%"
+              bgColor="#F3407B"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#FFFFFF"
+              fontWeight="bold"
+              borderWith={1}
+              borderColor="#F3407B"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              marginTop={15}
+              onPressHandler={() => this.saveProfile()}
             />
           </View>
-        </View>
-        <View style={styles.row}>
-          <TextInput
-            style={styles.emailInput}
-            onChangeText={phone => this.updateInputState("phone", phone)}
-            value={this.state.controls.phone.value}
-            placeholder="Phone Number"
-            placeholderTextColor="#0F195B"
-            keyboardType="number-pad"
-            autoCorrect={false}
-          />
-        </View>
-        {/*<View style={styles.row}>
-          <RNPickerSelect
-            placeholder={{
-              label: "Select your company...",
-              value: null,
-              color: "#01396F"
-            }}
-            items={this.state.items}
-            hideIcon={true}
-            onValueChange={value => {
-              this.setCompanyValue(value);
-            }}
-            onUpArrow={() => {
-              this.inputRefs.name.focus();
-            }}
-            onDownArrow={() => {
-              this.inputRefs.picker2.togglePicker();
-            }}
-            style={{ ...pickerSelectStyles }}
-            value={this.state.company}
-            ref={el => {
-              this.inputRefs.picker = el;
-            }}
-          />
-          </View>*/}
-        <View style={styles.nextBt}>
-          <CustomButton
-            title="SAVE"
-            width="95%"
-            bgColor="#F3407B"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#FFFFFF"
-            fontWeight="bold"
-            borderWith={1}
-            borderColor="#F3407B"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            marginTop={15}
-            onPressHandler={() => this.saveProfile()}
-          />
-        </View>
-        <View style={styles.back}>
-          <CustomButton
-            title=""
-            width="90%"
-            bgColor="#FFFFFF"
-            paddingTop={14}
-            paddingRight={10}
-            paddingBottom={14}
-            paddingLeft={10}
-            textAlign="center"
-            color="#FFFFFF"
-            fontWeight="bold"
-            borderWidth={1}
-            borderColor="#FFFFFF"
-            fontFamily="Avenir"
-            fontSize={16}
-            borderRadius={5}
-            onPressHandler={() => console.log("Dummy")}
-          />
-        </View>
-        <View style={styles.powered}>
-          <Text style={styles.textPlan}>
-            Powered by <Text style={styles.pink}>Sepio Guard</Text>
-          </Text>
-        </View>
-      </View>
+          <View style={styles.back}>
+            <CustomButton
+              title=""
+              width="90%"
+              bgColor="#FFFFFF"
+              paddingTop={14}
+              paddingRight={10}
+              paddingBottom={14}
+              paddingLeft={10}
+              textAlign="center"
+              color="#FFFFFF"
+              fontWeight="bold"
+              borderWidth={1}
+              borderColor="#FFFFFF"
+              fontFamily="Avenir"
+              fontSize={16}
+              borderRadius={5}
+              onPressHandler={() => console.log("Dummy")}
+            />
+          </View>
+          <View style={styles.powered}>
+            <Text style={styles.textPlan}>
+              Powered by <Text style={styles.pink}>Sepio Guard</Text>
+            </Text>
+          </View>
+        </Content>
+      </Container>
     );
   }
 }
@@ -695,9 +700,10 @@ const pickerSelectStyles = StyleSheet.create({
   },
   inputAndroid: {
     fontSize: 16,
-    paddingTop: 10,
+    paddingTop: 5,
     paddingHorizontal: 10,
-    paddingBottom: 10,
+    paddingBottom: 5,
+    height: 40,
     borderWidth: 0,
     borderColor: "gray",
     borderRadius: 4,

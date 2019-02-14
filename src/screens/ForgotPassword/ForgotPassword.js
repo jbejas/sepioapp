@@ -6,15 +6,16 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-  Modal
+  Modal,
+  Image
 } from "react-native";
 import { Navigation } from "react-native-navigation";
-import Image from "react-native-remote-svg";
+
 //import { connect } from 'react-redux';
 //import { addPlace } from '../../store/actions/index';
 import validate from "../../utility/validation";
 
-import logo from "../../assets/images/logo.svg";
+import logo from "../../assets/images/logo.png";
 import CustomButton from "../../components/CustomButton/CustomButton";
 
 class ForgotPasswordScreen extends Component {
@@ -197,7 +198,13 @@ class ForgotPasswordScreen extends Component {
   goToScreen = screenName => {
     Navigation.push(this.props.componentId, {
       component: {
-        name: screenName
+        name: screenName,
+        options: {
+          topBar: {
+            visible: false,
+            height: 0
+          }
+        }
       }
     });
   };

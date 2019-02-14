@@ -1,16 +1,8 @@
 import React, { Component } from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
 import { Navigation } from "react-native-navigation";
-import Image from "react-native-remote-svg";
 import { openDatabase } from "react-native-sqlite-storage";
 var db = openDatabase({ name: "sepio.db" });
-
-import logo from "../../assets/images/logo.svg";
-import home from "../../assets/images/home.svg";
-import referrals from "../../assets/images/referrals.svg";
-import customers from "../../assets/images/customers.svg";
-import settings from "../../assets/images/settings.svg";
-import logout from "../../assets/images/logout.svg";
 
 class MenuScreen extends Component {
   state = {
@@ -127,7 +119,10 @@ class MenuScreen extends Component {
     return (
       <View style={styles.container}>
         <View style={styles.menuHeader}>
-          <Image style={styles.avatar} source={logo} />
+          <Image
+            style={styles.avatar}
+            source={require("../../assets/images/logo.png")}
+          />
           <Text style={styles.username}>{this.state.userName}</Text>
         </View>
         <View style={styles.menuContainer}>
@@ -137,7 +132,10 @@ class MenuScreen extends Component {
             }}
           >
             <View style={styles.menuItem}>
-              <Image style={styles.imageIcon} source={home} />
+              <Image
+                style={styles.imageIcon}
+                source={require("../../assets/images/home.png")}
+              />
               <Text style={styles.menuText}>Home</Text>
             </View>
           </TouchableOpacity>
@@ -151,7 +149,10 @@ class MenuScreen extends Component {
             }}
           >
             <View style={styles.menuItem}>
-              <Image style={styles.imageIcon} source={customers} />
+              <Image
+                style={styles.imageIcon}
+                source={require("../../assets/images/customers.png")}
+              />
               <Text style={styles.menuText}>Customers</Text>
             </View>
           </TouchableOpacity>
@@ -161,7 +162,10 @@ class MenuScreen extends Component {
             }}
           >
             <View style={styles.menuItem}>
-              <Image style={styles.imageIcon} source={settings} />
+              <Image
+                style={styles.imageIcon}
+                source={require("../../assets/images/settings.png")}
+              />
               <Text style={styles.menuText}>Settings</Text>
             </View>
           </TouchableOpacity>
@@ -171,7 +175,10 @@ class MenuScreen extends Component {
             }}
           >
             <View style={styles.menuItem}>
-              <Image style={styles.imageIcon} source={logout} />
+              <Image
+                style={styles.imageIcon}
+                source={require("../../assets/images/logout.png")}
+              />
               <Text style={styles.menuText}>Logout</Text>
             </View>
           </TouchableOpacity>
