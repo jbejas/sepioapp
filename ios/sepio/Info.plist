@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>1.2</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -39,8 +39,12 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Sepio needs access to your camera.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Sepio Guard has to access your location when suing the App.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Sepio has to use your location.</string>
+	<string>Sepio Guard has to use your location.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Sepio Guard has to access your Photo Library</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AvenirLTStd-Black.otf</string>

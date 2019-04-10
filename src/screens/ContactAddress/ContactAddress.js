@@ -17,7 +17,8 @@ import {
   Left,
   Right,
   Body,
-  Text
+  Text,
+  Footer
 } from "native-base";
 import { Navigation } from "react-native-navigation";
 import RNPickerSelect from "react-native-picker-select";
@@ -66,10 +67,6 @@ class ContactAddressScreen extends Component {
         value: "AL"
       },
       {
-        label: "AK",
-        value: "AK"
-      },
-      {
         label: "AZ",
         value: "AZ"
       },
@@ -100,10 +97,6 @@ class ContactAddressScreen extends Component {
       {
         label: "GA",
         value: "GA"
-      },
-      {
-        label: "HI",
-        value: "HI"
       },
       {
         label: "ID",
@@ -644,12 +637,17 @@ class ContactAddressScreen extends Component {
               onPressHandler={() => this.goBack()}
             />
           </View>
-          <View style={styles.powered}>
-            <Text style={styles.textPlan}>
-              Powered by <Text style={styles.pink}>Sepio Guard</Text>
-            </Text>
-          </View>
         </Content>
+        <Footer
+          style={{
+            backgroundColor: "rgba(0,0,0,0);",
+            borderTopWidth: 0
+          }}
+        >
+          <Text style={styles.textPlan}>
+            Powered by <Text style={styles.pink}>Sepio Guard</Text>
+          </Text>
+        </Footer>
       </Container>
     );
   }

@@ -17,7 +17,8 @@ import {
   Left,
   Right,
   Body,
-  Text
+  Text,
+  Footer
 } from "native-base";
 import { Navigation } from "react-native-navigation";
 import RNPickerSelect from "react-native-picker-select";
@@ -618,12 +619,17 @@ class PartnerAddressScreen extends Component {
               onPressHandler={() => this.goBack()}
             />
           </View>
-          <View style={styles.powered}>
-            <Text style={styles.textPlan}>
-              Powered by <Text style={styles.pink}>Sepio Guard</Text>
-            </Text>
-          </View>
         </Content>
+        <Footer
+          style={{
+            backgroundColor: "rgba(0,0,0,0);",
+            borderTopWidth: 0
+          }}
+        >
+          <Text style={styles.textPlan}>
+            Powered by <Text style={styles.pink}>Sepio Guard</Text>
+          </Text>
+        </Footer>
       </Container>
     );
   }

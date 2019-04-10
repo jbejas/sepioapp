@@ -398,7 +398,6 @@ class SignupScreen extends Component {
               onChangeText={val => this.updateInputState("phone", val)}
               placeholder="Phone Number"
               placeholderTextColor="#0F195B"
-              secureTextEntry
               keyboardType="number-pad"
               autoCorrect={false}
             />

@@ -18,7 +18,8 @@ import {
   Left,
   Right,
   Body,
-  Text
+  Text,
+  Footer
 } from "native-base";
 import SplashScreen from "react-native-splash-screen";
 import { Navigation } from "react-native-navigation";
@@ -234,6 +235,9 @@ class PaymentOptionsScreen extends Component {
   };
 
   completePurchase = () => {
+    //Publishable Key: `pk_live_8tcRfySbefdvEyvdcmkc2VhR`
+    //Secret Key: `sk_live_oCfgpuOJHuaSUoIWJ6Go4P4W`
+
     if (this.state.payment == 0) {
       Alert.alert(
         "Choose Plan",
@@ -325,7 +329,7 @@ class PaymentOptionsScreen extends Component {
                   body: this.state.method_data,
                   headers: {
                     Authorization:
-                      "Bearer " + "sk_test_yQUMVFqMVyDKM6GNWUNs45nw",
+                      "Bearer " + "sk_live_oCfgpuOJHuaSUoIWJ6Go4P4W",
                     "Content-Type": "application/x-www-form-urlencoded"
                   },
                   method: "POST"
@@ -345,7 +349,7 @@ class PaymentOptionsScreen extends Component {
                         tokens.id,
                       headers: {
                         Authorization:
-                          "Bearer " + "sk_test_yQUMVFqMVyDKM6GNWUNs45nw",
+                          "Bearer " + "sk_live_oCfgpuOJHuaSUoIWJ6Go4P4W",
                         "Content-Type": "application/x-www-form-urlencoded"
                       },
                       method: "POST"
@@ -392,7 +396,7 @@ class PaymentOptionsScreen extends Component {
                             customer_data.id,
                           headers: {
                             Authorization:
-                              "Bearer " + "sk_test_yQUMVFqMVyDKM6GNWUNs45nw",
+                              "Bearer " + "sk_live_oCfgpuOJHuaSUoIWJ6Go4P4W",
                             "Content-Type": "application/x-www-form-urlencoded"
                           },
                           method: "POST"
@@ -859,12 +863,17 @@ class PaymentOptionsScreen extends Component {
               onPressHandler={() => this.goBack()}
             />
           </View>
-          <View style={styles.powered}>
-            <Text style={styles.textPlan}>
-              Powered by <Text style={styles.pink}>Sepio Guard</Text>
-            </Text>
-          </View>
         </Content>
+        <Footer
+          style={{
+            backgroundColor: "rgba(0,0,0,0);",
+            borderTopWidth: 0
+          }}
+        >
+          <Text style={styles.textPlan}>
+            Powered by <Text style={styles.pink}>Sepio Guard</Text>
+          </Text>
+        </Footer>
       </Container>
     );
   }

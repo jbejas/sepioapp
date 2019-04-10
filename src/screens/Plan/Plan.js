@@ -19,7 +19,8 @@ import {
   Left,
   Right,
   Body,
-  Text
+  Text,
+  Footer
 } from "native-base";
 import { Navigation } from "react-native-navigation";
 
@@ -285,7 +286,7 @@ class PlanScreen extends Component {
                 Send a Link
               </Text>
               <Text style={styles.text3}>
-                Your can send a customer a link to fill
+                You can send a customer a link to fill
               </Text>
               <Text style={styles.text3}>out the form themselves. Please</Text>
               <Text style={styles.text3}>choose one of the options below.</Text>
@@ -508,12 +509,17 @@ class PlanScreen extends Component {
               onPressHandler={() => this.setModalVisible(true)}
             />
           </View>
-          <View style={styles.powered}>
-            <Text style={styles.textPlan}>
-              Powered by <Text style={styles.pink}>Sepio Guard</Text>
-            </Text>
-          </View>
         </Content>
+        <Footer
+          style={{
+            backgroundColor: "rgba(0,0,0,0);",
+            borderTopWidth: 0
+          }}
+        >
+          <Text style={styles.textPlan}>
+            Powered by <Text style={styles.pink}>Sepio Guard</Text>
+          </Text>
+        </Footer>
       </Container>
     );
   }
