@@ -278,7 +278,8 @@ class PaymentOptionsScreen extends Component {
               firstName: contact_information.first_name,
               lastName: contact_information.last_name,
               phone: contact_information.phone,
-              emailAddress: contact_information.email
+              emailAddress: contact_information.email,
+              hasSepio: true
             })
           })
             .then(response => {
