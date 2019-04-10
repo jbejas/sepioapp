@@ -120,7 +120,8 @@ class CustomersScreen extends Component {
                   var year = date.getFullYear();
                   var formattedTime = month + "/" + day + "/" + year;
 
-                  if (c[i].vendor == results.rows.item(0).uid) {
+                  //if (c[i].vendor == results.rows.item(0).uid) {
+                  if (c[i].vendor == results.rows.item(0).employer) {
                     customers.push({
                       key: c[i]["id"],
                       firstName: c[i]["firstName"],
@@ -425,7 +426,7 @@ class CustomersScreen extends Component {
     }
 
     if (Platform.OS === "ios") {
-      if (isFunded && !hasSepio) {
+      /*if (isFunded && !hasSepio) {
         Linking.openURL(
           "mailto:" +
             email +
@@ -448,9 +449,17 @@ class CustomersScreen extends Component {
             lastName +
             " Family,"
         );
-      }
+      }*/
+
+      Linking.openURL(
+        "mailto:" +
+          email +
+          "?subject=Contact from Sepio&body=Dear " +
+          lastName +
+          " Family,"
+      );
     } else {
-      if (isFunded && !hasSepio) {
+      /*if (isFunded && !hasSepio) {
         Linking.openURL(
           "mailto:" +
             email +
@@ -473,7 +482,15 @@ class CustomersScreen extends Component {
             lastName +
             " Family,"
         );
-      }
+      }*/
+
+      Linking.openURL(
+        "mailto:" +
+          email +
+          "?subject=Contact from Sepio&body=Dear " +
+          lastName +
+          " Family,"
+      );
     }
   };
 
