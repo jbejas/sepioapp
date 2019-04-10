@@ -40,8 +40,7 @@ class CustomersScreen extends Component {
     dataSource: null,
     customers: [],
     companies: [],
-    salespersons: [],
-    uid: ""
+    salespersons: []
   };
 
   constructor(props) {
@@ -107,15 +106,6 @@ class CustomersScreen extends Component {
               .then(response => {
                 let c = JSON.parse(response._bodyText);
 
-                console.log("Customer", c);
-
-                this.setState(prevState => {
-                  return {
-                    ...prevState,
-                    uid: results.rows.item(0).uid
-                  };
-                });
-
                 console.log("Response Customers", c);
                 let customers = [];
 
@@ -126,20 +116,7 @@ class CustomersScreen extends Component {
 
                   //console.log("DATE -> " + formattedTime);
 
-                  customers.push({
-                    key: c[i]["id"],
-                    firstName: c[i]["firstName"],
-                    lastName: c[i]["lastName"],
-                    emailAddress: c[i]["emailAddress"],
-                    createdOn: formattedTime,
-                    phone: c[i]["phone"],
-                    isFunded: c[i]["isFunded"],
-                    hasSepio: c[i]["hasSepio"],
-                    vendor: c[i]["vendor"],
-                    salesperson: c[i]["salesperson"]
-                  });
-
-                  if (c[i].vendor == results.rows.item(0).uid) {
+                  if (c[i].salesperson == results.rows.item(0).uid) {
                     //if (c[i].vendor == results.rows.item(0).employer) {
                     customers.push({
                       key: c[i]["id"],
@@ -619,7 +596,6 @@ class CustomersScreen extends Component {
             <Text style={styles.text1}>Customers</Text>
           </View>
           <View style={styles.planSelectors}>
-            <Text>UID: {this.state.uid}</Text>
             <FlatList
               style={styles.customerList}
               data={this.state.customers}
@@ -646,7 +622,7 @@ class CustomersScreen extends Component {
                           <Row>
                             <Col>
                               <Text style={styles.customerEmail}>
-                                {item.vendor}
+                                {item.emailAddress}
                               </Text>
                             </Col>
                           </Row>
