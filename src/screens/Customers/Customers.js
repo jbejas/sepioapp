@@ -115,8 +115,8 @@ class CustomersScreen extends Component {
 
                   //console.log("DATE -> " + formattedTime);
 
-                  //if (c[i].vendor == results.rows.item(0).uid) {
-                  if (c[i].vendor == results.rows.item(0).employer) {
+                  if (c[i].vendor == results.rows.item(0).uid) {
+                    //if (c[i].vendor == results.rows.item(0).employer) {
                     customers.push({
                       key: c[i]["id"],
                       firstName: c[i]["firstName"],
