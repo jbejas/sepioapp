@@ -156,6 +156,14 @@ class CustomersScreen extends Component {
                     { cancelable: false }
                   );
                 } else {
+                  customers.sort(function(a, b) {
+                    var keyA = a.updatedAt,
+                      keyB = b.updatedAt;
+                    // Compare the 2 dates
+                    if (keyA < keyB) return -1;
+                    if (keyA > keyB) return 1;
+                    return 0;
+                  });
                   this.setState(prevState => {
                     return {
                       ...prevState,
@@ -608,14 +616,13 @@ class CustomersScreen extends Component {
                           <Row>
                             <Col>
                               <Grid>
-                                <Col size={60}>
+                                <Col size={80}>
                                   <Text style={styles.customerText}>
                                     {item.firstName} {item.lastName}
                                   </Text>
                                 </Col>
                                 {this.showSepio(item.hasSepio)}
                                 {this.showDollar(item.isFunded)}
-                                <Col size={20} />
                               </Grid>
                             </Col>
                           </Row>
