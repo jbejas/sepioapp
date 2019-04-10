@@ -41,7 +41,7 @@ class PlanScreen extends Component {
     currentScreen: false,
     selectedPlan: 0,
     customer: 0,
-    link: "https://sepioguard.com/share?ref=Lorem Ipsum Dolor Sit Amet"
+    uid: ""
   };
 
   constructor(props) {
@@ -58,6 +58,14 @@ class PlanScreen extends Component {
         (tx, results) => {
           console.log("Results", results.rows.item(0).uid);
           if (results.rows.item(0).uid) {
+            this.setState(prevState => {
+              return {
+                ...prevState,
+                uid:
+                  "https://sepioguard.com/share?ref=" + results.rows.item(0).uid
+              };
+            });
+
             fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
               method: "GET",
               credentials: "include"
@@ -216,57 +224,88 @@ class PlanScreen extends Component {
     }
   }
 
-  sendSMS = number => {
-    console.log("Send SMS");
+  sendSMS = (number, uid) => {
+    console.log("Send SMS -> " + number);
     if (Platform.OS === "ios") {
-      Linking.openURL("sms:" + number + "&body=" + this.state.link);
+      Linking.openURL(
+        "sms:" + number + "&body=https://store.sepioguard.com?sid=" + uid
+      );
     } else {
-      Linking.openURL("sms:" + number + "?body=" + this.state.link);
+      Linking.openURL(
+        "sms:" + number + "?body=https://store.sepioguard.com?sid=" + uid
+      );
     }
   };
 
-  sendEmail = email => {
-    console.log("Send Email");
-    if (Platform.OS === "ios") {
-      Linking.openURL(
-        "mailto:" +
-          email +
-          "?subject=Contact from Sepio&body=" +
-          this.state.link
-      );
+  sendEmail = (email, uid) => {
+    console.log("Send Email -> " + email);
+    console.log("UID -> " + uid);
+
+    const canOpen = Linking.canOpenURL(
+      "https://store.sepioguard.com?sid=" + uid
+    );
+
+    if (canOpen) {
+      console.log("Can Open URL");
+      if (Platform.OS === "ios") {
+        Linking.openURL(
+          "mailto:" +
+            email +
+            "?subject=Contact from Sepio&body=https://store.sepioguard.com?sid=" +
+            uid
+        );
+      } else {
+        Linking.openURL(
+          "mailto:" +
+            email +
+            "?subject=Contact from Sepio&body=https://store.sepioguard.com?sid=" +
+            uid
+        );
+      }
     } else {
-      Linking.openURL(
-        "mailto:" +
-          email +
-          "?subject=Contact from Sepio&body=" +
-          this.state.link
-      );
+      console.log("Can Open -> ", canOpen);
     }
   };
 
   sendLink(type) {
     this.setModalVisible(false);
-    fetch(
-      "https://sepioguard-test-api.herokuapp.com/v1/customer/" +
-        this.state.customer,
-      {
-        method: "GET",
-        credentials: "include"
-      }
-    )
-      .then(response => {
-        console.log("Response Customer", response);
-        let customer = JSON.parse(response._bodyText);
-        if (type == "sms") {
-          this.sendSMS(customer.phone);
-        } else {
-          this.sendEmail(customer.emailAddress);
+
+    db.transaction(tx => {
+      tx.executeSql(
+        "SELECT * FROM login WHERE ID = 1",
+        [],
+        (tx, results) => {
+          console.log("Results", results.rows.item(0).uid);
+          if (results.rows.item(0).uid) {
+            let uid = results.rows.item(0).uid;
+            fetch(
+              "https://sepioguard-test-api.herokuapp.com/v1/customer/" +
+                this.state.customer,
+              {
+                method: "GET",
+                credentials: "include"
+              }
+            )
+              .then(response => {
+                console.log("Response Customer", response);
+                let customer = JSON.parse(response._bodyText);
+                if (type == "sms") {
+                  this.sendSMS(customer.phone, uid);
+                } else {
+                  this.sendEmail(customer.emailAddress, uid);
+                }
+                this.setModalVisible(false);
+              })
+              .catch(error => {
+                console.log("Error retrieveing customer.", error);
+              });
+          }
+        },
+        err => {
+          console.log("Error checking login existence", err);
         }
-        this.setModalVisible(false);
-      })
-      .catch(error => {
-        console.log("Error retrieveing customer.", error);
-      });
+      );
+    });
   }
 
   render() {
@@ -336,7 +375,7 @@ class PlanScreen extends Component {
               >
                 <TextInput
                   style={{ marginHorizontal: 10 }}
-                  value={this.state.link}
+                  value={this.state.uid}
                   placeholderTextColor="#0F195B"
                 />
               </View>

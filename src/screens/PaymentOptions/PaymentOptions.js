@@ -49,7 +49,8 @@ class PaymentOptionsScreen extends Component {
     payment: 0,
     customer: 0,
     plan: 0,
-    method_data: 0
+    method_data: 0,
+    uid: ""
   };
 
   constructor(props) {
@@ -67,6 +68,13 @@ class PaymentOptionsScreen extends Component {
         (tx, results) => {
           console.log("Results", results.rows.item(0));
           if (results.rows.item(0).uid) {
+            this.setState(prevState => {
+              return {
+                ...prevState,
+                uid:
+                  "https://sepioguard.com/share?ref=" + results.rows.item(0).uid
+              };
+            });
             fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
               method: "GET",
               credentials: "include"
@@ -660,7 +668,7 @@ class PaymentOptionsScreen extends Component {
               height: 45,
               backgroundColor: "#efefef"
             }}
-            value="https://sepioguard.com/share?ref=Lorem Ipsum Dolor Sit Amet"
+            value={this.state.uid}
             placeholderTextColor="#0F195B"
           />
         </View>

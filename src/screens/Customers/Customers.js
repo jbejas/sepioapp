@@ -22,6 +22,7 @@ import {
   Text,
   Footer
 } from "native-base";
+import moment from "moment";
 import { Grid, Col, Row } from "react-native-easy-grid";
 import { Icon } from "react-native-elements";
 import { Navigation } from "react-native-navigation";
@@ -108,17 +109,11 @@ class CustomersScreen extends Component {
                 let customers = [];
 
                 for (var i = 0; i < c.length; i++) {
-                  var date = new Date(parseInt(c[i]["createdAt"]));
-                  var month = date.getMonth() + 1;
-                  if (month < 10) {
-                    month = "0" + month;
-                  }
-                  var day = date.getDay();
-                  if (day < 10) {
-                    day = "0" + day;
-                  }
-                  var year = date.getFullYear();
-                  var formattedTime = month + "/" + day + "/" + year;
+                  var formattedTime = moment(
+                    parseInt(c[i]["createdAt"])
+                  ).format("MM/DD/YYYY");
+
+                  //console.log("DATE -> " + formattedTime);
 
                   //if (c[i].vendor == results.rows.item(0).uid) {
                   if (c[i].vendor == results.rows.item(0).employer) {
