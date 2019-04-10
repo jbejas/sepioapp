@@ -494,19 +494,21 @@ class CustomersScreen extends Component {
         </Col>
       );
     } else {
-      <Col size={10}>
-        <View>
-          <Image
-            style={{
-              width: 20,
-              height: 20,
-              opacity: 0.6
-            }}
-            source={require("../../assets/images/logo.png")}
-            resizeMode="contain"
-          />
-        </View>
-      </Col>;
+      return (
+        <Col size={10}>
+          <View>
+            <Image
+              style={{
+                width: 20,
+                height: 20,
+                opacity: 0.4
+              }}
+              source={require("../../assets/images/logo.png")}
+              resizeMode="contain"
+            />
+          </View>
+        </Col>
+      );
     }
   };
 
@@ -528,20 +530,22 @@ class CustomersScreen extends Component {
         </Col>
       );
     } else {
-      <Col size={10}>
-        <View>
-          <Image
-            style={{
-              width: 18,
-              height: 18,
-              marginTop: 2,
-              opacity: 0.6
-            }}
-            source={require("../../assets/images/dollar.png")}
-            resizeMode="contain"
-          />
-        </View>
-      </Col>;
+      return (
+        <Col size={10}>
+          <View>
+            <Image
+              style={{
+                width: 18,
+                height: 18,
+                marginTop: 2,
+                opacity: 0.4
+              }}
+              source={require("../../assets/images/dollar.png")}
+              resizeMode="contain"
+            />
+          </View>
+        </Col>
+      );
     }
   };
 
