@@ -96,7 +96,7 @@ class CustomersScreen extends Component {
         "SELECT * FROM login WHERE ID = 1",
         [],
         (tx, results) => {
-          console.log("Results", results.rows.item(0));
+          console.log("Login Results", results.rows.item(0));
           if (results.rows.item(0).uid) {
             fetch("https://sepioguard-test-api.herokuapp.com/v1/customer", {
               method: "GET",
@@ -120,7 +120,7 @@ class CustomersScreen extends Component {
                   var year = date.getFullYear();
                   var formattedTime = month + "/" + day + "/" + year;
 
-                  if (c[i].vendor == results.rows.item(0).employer) {
+                  if (c[i].vendor == results.rows.item(0).uid) {
                     customers.push({
                       key: c[i]["id"],
                       firstName: c[i]["firstName"],
