@@ -430,7 +430,7 @@ class CustomersScreen extends Component {
     }
 
     if (Platform.OS === "ios") {
-      /*if (isFunded && !hasSepio) {
+      if (isFunded && !hasSepio) {
         Linking.openURL(
           "mailto:" +
             email +
@@ -453,17 +453,17 @@ class CustomersScreen extends Component {
             lastName +
             " Family,"
         );
-      }*/
+      }
 
-      Linking.openURL(
+      /*Linking.openURL(
         "mailto:" +
           email +
           "?subject=Contact from Sepio&body=Dear " +
           lastName +
           " Family,"
-      );
+      );*/
     } else {
-      /*if (isFunded && !hasSepio) {
+      if (isFunded && !hasSepio) {
         Linking.openURL(
           "mailto:" +
             email +
@@ -486,15 +486,15 @@ class CustomersScreen extends Component {
             lastName +
             " Family,"
         );
-      }*/
+      }
 
-      Linking.openURL(
+      /*Linking.openURL(
         "mailto:" +
           email +
           "?subject=Contact from Sepio&body=Dear " +
           lastName +
           " Family,"
-      );
+      );*/
     }
   };
 
