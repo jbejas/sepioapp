@@ -31,7 +31,7 @@ class CardScannerScreen extends Component {
   }
 
   scanCard() {
-    CardIOModule.scanCard.CardIOModule.scanCard()
+    CardIOModule.scanCard()
       .then(card => {
         Navigation.push(this.props.componentId, {
           component: {
